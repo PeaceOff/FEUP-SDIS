@@ -1,5 +1,6 @@
 package backup_service;
 
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
@@ -39,7 +40,7 @@ public class Client {
         }
     }
 
-    public void parseCommand(IBackup peer){
+    public void parseCommand(IBackup peer) throws RemoteException{
 
         switch (this.operation){//Estao na ordem que os docentes sugerem implementar.
             case "BACKUP":
