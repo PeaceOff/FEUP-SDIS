@@ -1,3 +1,5 @@
+package backup_service;
+
 import java.rmi.Remote;
 
 public interface IBackup extends Remote{
