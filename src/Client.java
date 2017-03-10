@@ -1,7 +1,9 @@
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 
 public class Client {
 
-    String peer_access_point;
+    String remote_object_name;
     String operation;
     String operand_1;//Nome do ficheiro onde se vai operar ou espaço a reclamar (KByte)
     String operand_2;//Replication degree (apenas no comando BACKUP!)
@@ -9,7 +11,7 @@ public class Client {
     public static void main(String args[]){
         Client c = new Client();
 
-        c.peer_access_point = args[0];
+        c.remote_object_name = args[0];
         c.operation = args[1];
         if(args.length > 2)
             c.operand_1 = args[2];//Pode ser null;
@@ -20,20 +22,37 @@ public class Client {
             }
             c.operand_2 = args[3]; //Pode ser null;
         }
+
+        try {
+            Registry reg = LocateRegistry.getRegistry("localhost");
+            IBackup peer = (IBackup) reg.lookup(c.remote_object_name);
+
+            c.parseCommand(peer);
+
+        } catch (Exception e) {
+            System.err.println("Client exception :" + e.toString());
+            e.printStackTrace();
+        }
     }
 
-    public void parseCommand(){
+    public void parseCommand(IBackup peer){
 
         switch (this.operation){//Estao na ordem que os docentes sugerem implementar.
             case "BACKUP":
+                peer.backup(this.operand_1,this.operand_2);
                 break;
             case "DELETE":
+                peer.delete(this.operand_1);
                 break;
             case "RESTORE":
+                peer.restore(this.operand_1);
                 break;
             case "RECLAIM":
+                peer.reclaim(this.operand_1);
                 break;
             case "STATE":
+                String res = peer.state();
+                System.out.println("Local Service State Info\n" + res);
                 break;
             default:
                 break;
