@@ -3,6 +3,7 @@ package file_managment;
 import backup_service.protocols.ChannelManager;
 
 import java.io.*;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,13 +14,19 @@ import java.security.NoSuchAlgorithmException;
 public class FileManager {
 
     private int chunk_size_bytes = 64000;
-    private String tempDir_path;
+    private String main_path;
     private MessageDigest hasher;
     private ChannelManager channels;
 
     public FileManager(ChannelManager c) throws IOException, NoSuchAlgorithmException {
         this.channels = c;
-        this.tempDir_path = System.getProperty("java.io.tmpdir");
+        this.main_path = System.getProperty("java.class.path") + File.separator + "backup";
+        Path path = Paths.get(this.main_path);
+        try {
+            Files.createDirectory(path);
+        } catch (FileAlreadyExistsException e) {
+            System.out.println("Directory already exists!");
+        }
         this.hasher = MessageDigest.getInstance("SHA-256");
     }
 
@@ -55,10 +62,10 @@ public class FileManager {
 
     public boolean save_chunck(byte[] chunkData, byte[] fileID, int chunk_num) throws IOException {
 
-        String directory = this.tempDir_path + File.separator + fileID.toString();
+        String directory = this.main_path + File.separator + fileID.toString();
         Path folder_path = Paths.get(directory);
         if(!Files.exists(folder_path))//Ja existe a pasta
-            new File(directory).mkdir();//talvez mkdir()
+            Files.createDirectory(Paths.get(directory));
 
         Path chunk_path = Paths.get(directory + File.separator + Integer.toString(chunk_num));
         if(Files.exists(chunk_path))
