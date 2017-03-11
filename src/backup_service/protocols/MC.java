@@ -11,33 +11,15 @@ import utils.Utilities;
 
 public class MC extends Subprotocol{
 	
-	public MC(String version, int server_id, String ipNport) throws IOException {
-		super(version, server_id, ipNport);
+	public MC(String ipNport, ChannelManager channelManager) throws IOException {
+		super(ipNport, channelManager);
 	}
-	
-	public void sendSTORED(String fileID, int chunkNo) throws IOException{
-		ByteOutputStream bos = new ByteOutputStream();
-	
-		bos.writeAsAscii("STORED");
-	
-		bos.writeAsAscii(" " + Subprotocol.getVersion());
-		bos.writeAsAscii(" " + Subprotocol.getServer_id());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
-		bos.write(Utilities.CRLF);
-		bos.write(Utilities.CRLF);
-		Debug.log(1,"SIZE SENT!!!:",""+bos.size());
-		this.getConnection().sendData(Arrays.copyOf(bos.getBytes(), bos.size()));
-		
-		bos.close();
-	}
-	
 	
 	@Override
 	public void receiveMessage(byte[] message) {
 		ByteArrayInputStream bis = new ByteArrayInputStream(message);
 		BackupHeader header = readHeaders(bis);	
-		if(header.senderID == this.getServer_id())
+		if(header.senderID == this.getServerID())
 			return;
 		Debug.log(this.getConnection().getConnectionInfo().toString(),"Received a message!");
 		Debug.log(1,this.getConnection().getConnectionInfo().toString(),"Received:" + header);	

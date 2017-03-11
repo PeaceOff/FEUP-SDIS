@@ -11,27 +11,8 @@ import utils.Utilities;
 
 public class MDB extends Subprotocol {
 	
-	private MC mc;
-	
-	public MDB(String version, int server_id, String ipNport, MC mc) throws IOException {
-		super(version, server_id, ipNport);
-		this.mc = mc;
-	}
-	
-	public void sendPUTCHUNK(String fileID, int chunkNo, int replicationDeg, byte[] data) throws IOException{
-		ByteOutputStream bos = new ByteOutputStream();
-		bos.writeAsAscii("PUTCHUNK");
-		bos.writeAsAscii(" " + Subprotocol.getVersion());
-		bos.writeAsAscii(" " + Subprotocol.getServer_id());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
-		bos.writeAsAscii(" " + replicationDeg);
-		bos.write(Utilities.CRLF);
-		bos.write(Utilities.CRLF);
-		bos.write(data);
-		this.getConnection().sendData(bos.getBytes());
-		
-		bos.close();
+	public MDB(String ipNport, ChannelManager channelManager) throws IOException {
+		super(ipNport, channelManager);
 	}
 	
 	@Override
@@ -40,7 +21,7 @@ public class MDB extends Subprotocol {
 		
 		
 		BackupHeader header = readHeaders(bis);
-		if(header.senderID == this.getServer_id())
+		if(header.senderID == this.getServerID())
 			return;
 
 		Debug.log(this.getConnection().getConnectionInfo().toString(),"Received a message!");
@@ -50,7 +31,7 @@ public class MDB extends Subprotocol {
 		
 		//Send STORED!
 		try {
-			mc.sendSTORED(header.fileID, header.chunkNo);
+			this.getMC().sendMessage(MessageConstructor.getSTORED(header.fileID, header.chunkNo));
 		} catch (IOException e) {
 			System.out.println("Error Sending STORED!!");
 			e.printStackTrace();

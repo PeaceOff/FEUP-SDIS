@@ -5,14 +5,12 @@ import java.io.IOException;
 import backup_service.MulticastConnection;
 
 public abstract class Subprotocol {
-	private static String version;
-	private static int server_id;
 	private MulticastConnection connection;
+	private ChannelManager channelManager;
 	
-	public Subprotocol(String version, int server_id, String ipNport) throws IOException{
+	public Subprotocol(String ipNport, ChannelManager channelManager) throws IOException{
 		connection = new MulticastConnection(ipNport, this);
-		this.version = version;
-		this.server_id = server_id;
+		this.channelManager = channelManager;
 	}
 	
 	public void start(){
@@ -20,17 +18,31 @@ public abstract class Subprotocol {
 	}
 	
 	public static String getVersion() {
-		return version;
+		return ChannelManager.getVersion();
 	}
 
-	public static int getServer_id() {
-		return server_id;
+	public static int getServerID() {
+		return ChannelManager.getServerID();
 	}
 	
 	public MulticastConnection getConnection() {
 		return connection;
 	}
-
+	
+	public MC getMC(){
+		return channelManager.getMC();
+	}
+	public MDB getMDB(){
+		return channelManager.getMDB();
+	}
+	public MDR getMDR(){
+		return channelManager.getMDR();
+	}
+	
+	public void sendMessage(byte[] message) throws IOException{
+		this.connection.sendData(message);
+	}
+	
 	public abstract void receiveMessage(byte[] message);
 	
 }
