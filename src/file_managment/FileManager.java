@@ -1,5 +1,7 @@
 package file_managment;
 
+import backup_service.protocols.ChannelManager;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,46 +9,41 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 public class FileManager {
-
-    Path path;
-    byte[] file_id;
-
-    byte[][] chunks;
-    int n_chunks;
 
     private int chunk_size_bytes = 64000;
     private String tempDir_path;
     private MessageDigest hasher;
+    private ChannelManager channels;
 
-    public FileManager() throws IOException, NoSuchAlgorithmException {
-
+    public FileManager(ChannelManager c) throws IOException, NoSuchAlgorithmException {
+        this.channels = c;
         this.tempDir_path = System.getProperty("java.io.tmpdir");
         this.hasher = MessageDigest.getInstance("SHA-256");
     }
 
-    public FileInChunks get_chunks_from_file(String path) throws IOException {
+    public File_Chunk get_chunks_from_file(String path) throws IOException {
 
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
+        BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
 
-        byte[] file_bytes = Files.readAllBytes(file);
 
-        int len = file_bytes.length;
+        int len = (int)file.toFile().length();
+        byte[] file_id = this.generate_file_id(metadata,file.toFile().getName());
         int n_chunks = 0;
         byte[][] chunks = new byte[0][this.chunk_size_bytes];
 
-        for (int i = 0; i < len - this.chunk_size_bytes + 1; i += this.chunk_size_bytes)
-            chunks[n_chunks++] = Arrays.copyOfRange(file_bytes, i, i + this.chunk_size_bytes);
+        for (int i = 0; i < len - this.chunk_size_bytes + 1; i += this.chunk_size_bytes) {
+            //TODO enviar para o canal apropriado a mensagem de putchunk
+            reader.read(chunks[n_chunks++], i, i + this.chunk_size_bytes);
+        }
 
         //Ultima chunk, ja garante que se for multiplo a ultima ficara com tamanho 0
-        chunks[n_chunks] = Arrays.copyOfRange(file_bytes, len - len % this.chunk_size_bytes, len);
+        reader.read(chunks[n_chunks],len-len % this.chunk_size_bytes, len);
 
-        byte[] file_id = this.generate_file_id(metadata,new File(path).getName());
-
-        return new FileInChunks(chunks,n_chunks,file_id);
+        return new File_Chunk(chunks[0],n_chunks,file_id);
     }
 
     private byte[] generate_file_id(BasicFileAttributes metadata, String file_name) throws UnsupportedEncodingException {
