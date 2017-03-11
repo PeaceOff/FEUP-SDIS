@@ -2,6 +2,8 @@ package backup_service.protocols;
 
 import java.io.IOException;
 
+import backup_service.distributor.Distributor;
+
 public class ChannelManager {
 	
 	private static final int MC = 0;
@@ -12,14 +14,14 @@ public class ChannelManager {
     
 	private Subprotocol[] connections = new Subprotocol[3];
 	
-	public ChannelManager(String[] args){
+	public ChannelManager(String[] args, Distributor[] distributors){
 		protocol_version = args[3]; //Verificar!
     	server_id = Integer.parseInt(args[4]); //Verificar!
     	
 		try {
-			connections[MC]  = new MC(args[0], this);
-	    	connections[MDB] = new MDB(args[1], this);
-	    	connections[MDR] = new MDB(args[2], this);
+			connections[MC]  = new Subprotocol(args[0],  this,  distributors[0]);
+	    	connections[MDB] = new Subprotocol(args[1],  this,  distributors[1]);
+	    	connections[MDR] = new Subprotocol(args[2],  this,  distributors[2]);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
@@ -29,10 +31,9 @@ public class ChannelManager {
 	}
     
 	private void startConnections(){
-    	for(int i = 0; i<connections.length;i++ ){
+    	for(int i = 0; i<connections.length;i++ )
     		if(connections[i] != null)
     			connections[i].start();
-    	}
     }
 	
 	public static String getVersion() {
@@ -43,16 +44,16 @@ public class ChannelManager {
 		return server_id;
 	}
 	
-	public MC getMC(){
-		return (MC)connections[MC];
+	public Subprotocol getMC(){
+		return connections[MC];
 	}
 	
-	public MDB getMDB(){
-		return (MDB)connections[MDB];
+	public Subprotocol getMDB(){
+		return connections[MDB];
 	}
 
-	public MDR getMDR(){
-		return (MDR)connections[MDR];
+	public Subprotocol getMDR(){
+		return connections[MDR];
 	}
 	
 }

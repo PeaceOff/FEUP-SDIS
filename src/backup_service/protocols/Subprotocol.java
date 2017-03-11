@@ -1,16 +1,20 @@
 package backup_service.protocols;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import backup_service.MulticastConnection;
+import backup_service.distributor.Distributor;
+import utils.Utilities;
 
-public abstract class Subprotocol {
+public class Subprotocol {
 	private MulticastConnection connection;
 	private ChannelManager channelManager;
-	
-	public Subprotocol(String ipNport, ChannelManager channelManager) throws IOException{
+	private Distributor distributor;
+	public Subprotocol(String ipNport, ChannelManager channelManager, Distributor distributor) throws IOException{
 		connection = new MulticastConnection(ipNport, this);
 		this.channelManager = channelManager;
+		this.distributor= distributor;
 	}
 	
 	public void start(){
@@ -29,13 +33,13 @@ public abstract class Subprotocol {
 		return connection;
 	}
 	
-	public MC getMC(){
+	public Subprotocol getMC(){
 		return channelManager.getMC();
 	}
-	public MDB getMDB(){
+	public Subprotocol getMDB(){
 		return channelManager.getMDB();
 	}
-	public MDR getMDR(){
+	public Subprotocol getMDR(){
 		return channelManager.getMDR();
 	}
 	
@@ -43,6 +47,28 @@ public abstract class Subprotocol {
 		this.connection.sendData(message);
 	}
 	
-	public abstract void receiveMessage(byte[] message);
+	public void receiveMessage(byte[] message){
+		ByteArrayInputStream bis = new ByteArrayInputStream(message);
+		
+		String line = null;
+		while( line==null || !line.equals("")){
+			line = Utilities.getLine(bis);
+			if(!distributor.routeLine(line)){
+				return;
+			}
+		}
+		
+		if(bis.available() > 0){
+			byte[] lastBytes = new byte[bis.available()];
+			try {
+				bis.read(lastBytes);
+			} catch (IOException e) {
+				System.out.println("Could not read last bytes!");
+				e.printStackTrace();
+			}
+			distributor.routeBytes(lastBytes);
+		}
+		
+	}
 	
 }

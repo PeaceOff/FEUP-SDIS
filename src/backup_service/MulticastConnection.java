@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import backup_service.protocols.Subprotocol;
@@ -50,7 +49,6 @@ public class MulticastConnection extends Thread {
 	
 	public byte[] receiveData() throws IOException{
 		byte[] buf = new byte[64*1024];
-		InetAddress addr = null;
 		DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 		socket.receive(receivePacket);
 		//Debug.log(connectionInfo.toString(),""+receivePacket.getLength());
