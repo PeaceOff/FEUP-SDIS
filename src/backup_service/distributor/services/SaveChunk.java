@@ -1,6 +1,5 @@
 package backup_service.distributor.services;
 
-import java.io.IOException;
 
 
 import backup_service.distributor.IDistribute;
@@ -28,12 +27,7 @@ public class SaveChunk implements  IDistribute {
 		
 		Debug.log(1,"PUTCHUNK","Data:" + header);
 		
-		try {//FAZER WAIT!
-			chnMngr.getMC().sendMessage(MessageConstructor.getSTORED(header.fileID, header.chunkNo));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		new DelaySender(MessageConstructor.getSTORED(header.fileID, header.chunkNo), chnMngr.getMC());
 		
 		return true;
 	}

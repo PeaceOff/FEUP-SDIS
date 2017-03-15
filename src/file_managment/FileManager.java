@@ -49,7 +49,7 @@ public class FileManager {
 
         //Ultima chunk, ja garante que se for multiplo a ultima ficara com tamanho 0
         reader.read(chunks[n_chunks],len-len % this.chunk_size_bytes, len);
-
+        reader.close();
         return new File_Chunk(chunks[0],n_chunks,file_id);
     }
 

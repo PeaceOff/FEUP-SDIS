@@ -41,10 +41,9 @@ public class MulticastConnection extends Thread {
 		socket.joinGroup(group);
 	}
 	
-	public void sendData(byte[] data) throws IOException{
+	public synchronized void sendData(byte[] data) throws IOException{
 		DatagramPacket sendPacket = new DatagramPacket(data, data.length, group, connectionInfo.getPort());
-		
-		socket.send(sendPacket);
+		socket.send(sendPacket);		
 	}
 	
 	public byte[] receiveData() throws IOException{
