@@ -28,16 +28,21 @@ public class Server implements IBackup, IDistribute {
     	distributors[1] = new Distributor();
     	distributors[2] = new Distributor();
     	
-    	
     	channelManager = new ChannelManager(args, distributors);
     	
     	distributors[0].addDistributor("STORED", new Stored());
-    	
+    	distributors[0].addDistributor("GETCHUNK", new Restore());
+    	distributors[0].addDistributor("DELETE", new DeleteFile());
+    	distributors[0].addDistributor("REMOVED", new RemoveChunk());
     	
     	IDistribute PUTCHUNK = new SaveChunk(channelManager);
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
     	distributors[1].addDistributor("DATA", PUTCHUNK);
-    
+    	
+    	IDistribute CHUNK = new RestoreChunk();
+    	distributors[2].addDistributor("CHUNK", CHUNK);
+    	distributors[2].addDistributor("DATA", CHUNK);
+    	
     	//distributors[2].addDistributor("RESTORE", service);
     }
 

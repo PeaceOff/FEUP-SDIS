@@ -3,7 +3,7 @@ package backup_service.distributor.services;
 
 
 import backup_service.distributor.IDistribute;
-import backup_service.protocols.BackupHeader;
+import backup_service.protocols.HeaderInfo;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.MessageConstructor;
 import utils.Debug;
@@ -12,7 +12,7 @@ public class SaveChunk implements  IDistribute {
 
 	private ChannelManager chnMngr;
 	
-	private BackupHeader header;
+	private HeaderInfo header;
 	
 	public SaveChunk(ChannelManager chnMngr) {
 		this.chnMngr = chnMngr;
@@ -21,7 +21,7 @@ public class SaveChunk implements  IDistribute {
 	@Override
 	public boolean distribute(String line) {
 		
-		header = new BackupHeader(line);
+		header = new HeaderInfo(line);
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		

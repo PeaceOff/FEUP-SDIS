@@ -1,22 +1,31 @@
 package backup_service.protocols;
 
-public class BackupHeader {
+
+public class HeaderInfo {
 	
-	public String version;
-	public int senderID;
-	public String fileID;
-	public int chunkNo;
+	public String version = "None";
+	public int senderID = -1;
+	public String fileID = "None";
+	public int chunkNo = -1;
 	public int replicationDeg = -1;
-	public BackupHeader(String header){
+	
+	public HeaderInfo(String header){
+		
 		header = header.replace("\\s+", " ");
 		String[] res = header.split(" ");
-		version = res[1];
-		senderID = Integer.parseInt(res[2]);
-		fileID = res[3];
-		chunkNo = Integer.parseInt(res[4]);
 		
-		if(res[0].equals("PUTCHUNK"))
-			replicationDeg = Integer.parseInt(res[5]);
+		int nArgs = MessageConstructor.getArgumentNumber(res[0]);
+		
+		if(nArgs < 1) return;
+		version = res[1];
+		if(nArgs < 2) return;
+		senderID = Integer.parseInt(res[2]);
+		if(nArgs < 3) return;
+		fileID = res[3];
+		if(nArgs < 4) return;
+		chunkNo = Integer.parseInt(res[4]);
+		if(nArgs < 5) return;
+		replicationDeg = Integer.parseInt(res[5]);
 		
 	}
 	

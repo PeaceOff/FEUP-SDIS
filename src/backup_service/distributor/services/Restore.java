@@ -1,26 +1,25 @@
 package backup_service.distributor.services;
 
 import backup_service.distributor.IDistribute;
-import backup_service.protocols.HeaderInfo;
 import backup_service.protocols.ChannelManager;
-import utils.Debug;
+import backup_service.protocols.HeaderInfo;
 
-public class Stored implements IDistribute {
-	
-	
-	
+public class Restore implements IDistribute{
+
 	@Override
-	public boolean distribute(String line) {
+	public boolean distribute(String line) {//GETCHUNK 
 		HeaderInfo header = new HeaderInfo(line);
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
-		Debug.log(1,"STORED","Data:" + header);
+		
 		return true;
 	}
 
 	@Override
-	public void distribute(byte[] data) {		
+	public void distribute(byte[] data) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
