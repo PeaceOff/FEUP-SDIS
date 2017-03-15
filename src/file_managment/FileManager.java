@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +25,7 @@ public class FileManager {
     private MessageDigest hasher;
     private ChannelManager channels;
     private HashMap<String,HashMap<Integer,HashSet<Integer>>> mapeador = new HashMap<String,HashMap<Integer,HashSet<Integer>>>();
+    private ArrayList<String> my_files = new ArrayList<String>();
 
     public static void main(String[] args){
         Debug.log("BOAS");
@@ -50,6 +52,7 @@ public class FileManager {
 
         int len = (int)file.toFile().length();
         byte[] file_id = this.generate_file_id(metadata,file.toFile().getName());
+        this.my_files.add(file_id.toString());
         int n_chunks = 0;
         byte[][] chunks = new byte[0][this.chunk_size_bytes];
 
