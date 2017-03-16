@@ -35,7 +35,7 @@ public class File_Chunk {
         return chunk_data;
     }
 
-    public int getN_chunks() {
+    public int getN_chunk() {
         return n_chunk;
     }
 

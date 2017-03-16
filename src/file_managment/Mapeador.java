@@ -94,7 +94,7 @@ public class Mapeador  {
         }
     }
 
-    private File_Chunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
+    public File_Chunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
         //HashMap<String,HashMap<Integer,Pair<Integer,HashSet<Integer>>>>
 
         File_Chunk res = new File_Chunk(0,null);

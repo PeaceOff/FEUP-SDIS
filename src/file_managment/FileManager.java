@@ -16,7 +16,7 @@ import java.util.*;
 
 public class FileManager {
 
-    private static int disk_size = 1280000;//KB
+    private int disk_size = 1280000;//KB
     private int chunk_size_bytes = 64000;
     private String main_path;
     private MessageDigest hasher;
@@ -108,15 +108,66 @@ public class FileManager {
         mapeador.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
+    private byte[] get_file_chunk(byte[] fileID, int chunk_num) throws FileNotFoundException {
+
+        //TODO correr ao receber um pedido de GETCHUNK
+
+        String path = this.main_path + File.separator + fileID.toString() + File.separator + chunk_num;
+
+        Path file = Paths.get(path);
+        if(!Files.exists(file))
+            return null;
+
+        byte[] res = new byte[chunk_size_bytes];
+        BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
+        try {
+            reader.read(res,0,chunk_size_bytes);
+        } catch (IOException e) {
+            Debug.log("ERROR","Couldn't read chunk at " + fileID.toString() + ":" + chunk_num);
+        }
+
+        //TODO enviar mesagem CHUNK
+        return res;
+    }
+
+    private boolean delete_file_chunk(byte[] fileID, int chunk_num){
+
+        //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
+        String path = this.main_path + File.separator + fileID.toString() + File.separator + chunk_num;
+
+        Path file = Paths.get(path);
+        try {
+            return Files.deleteIfExists(file);
+        } catch (IOException e) {
+            Debug.log("ERROR", "Could not delete fileat " + fileID.toString() + ":" + chunk_num);
+        }
+
+        return false;
+    }
+
+    private void new_disk_size(){//Limpar o disco até atingir o nome espaço desejado
+
+        File directory = Paths.get(this.main_path).toFile();
+        while(directory.length() > this.disk_size){
+            File_Chunk delete = this.mapeador.get_chunk_to_delete();
+
+            if(!this.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
+                Debug.log("ERROR", "Could not delete file! " + delete.toString());
+
+            //TODO enviar o comando de REMOVED
+        }
+    }
+
     private boolean enough_disk_space(){
         return (Paths.get(this.main_path).toFile().length() + this.chunk_size_bytes <= this.disk_size);
     }
 
-    public static int getDisk_size() {
+    public int getDisk_size() {
         return disk_size;
     }
 
-    public static void setDisk_size(int disk_size) {
-        FileManager.disk_size = disk_size;
+    public void setDisk_size(int disk_size) {
+        this.disk_size = disk_size;
+        this.new_disk_size();
     }
 }
