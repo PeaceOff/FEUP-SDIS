@@ -20,7 +20,7 @@ public class FileManager {
     private String main_path;
     private MessageDigest hasher;
 
-    private Mapeador mapeador;
+    private Mapper mapper;
     private ArrayList<String> my_files = new ArrayList<String>();//Ficheiros que eu enviei para backup
 
     public static void main(String[] args){
@@ -30,7 +30,7 @@ public class FileManager {
     public FileManager() throws IOException, NoSuchAlgorithmException {
     	
         this.main_path = System.getProperty("java.class.path") + File.separator + "backup";
-        this.mapeador = new Mapeador(this.main_path);
+        this.mapper = new Mapper(this.main_path);
         Path path = Paths.get(this.main_path);
         //TODO verificar primeiro se o directory ja existe?
         try {
@@ -107,7 +107,7 @@ public class FileManager {
 
         String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
 
-        mapeador.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
+        mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
     private byte[] get_file_chunk(String fileID, int chunk_num) throws FileNotFoundException {
@@ -152,7 +152,7 @@ public class FileManager {
 
         File directory = Paths.get(this.main_path).toFile();
         while(directory.length() > this.disk_size){
-            File_Chunk delete = this.mapeador.get_chunk_to_delete();
+            File_Chunk delete = this.mapper.get_chunk_to_delete();
 
             if(!this.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
                 Debug.log("ERROR", "Could not delete file! " + delete.toString());
