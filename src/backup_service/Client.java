@@ -44,7 +44,7 @@ public class Client {
 
         switch (this.operation){//Estao na ordem que os docentes sugerem implementar.
             case "BACKUP":
-                peer.backup(this.operand_1,this.operand_2);
+                peer.backup(this.operand_1,Integer.parseInt(this.operand_2));
                 break;
             case "DELETE":
                 peer.delete(this.operand_1);

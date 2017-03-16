@@ -1,7 +1,5 @@
 package file_managment;
 
-import backup_service.protocols.ChannelManager;
-import javafx.util.Pair;
 import utils.Debug;
 
 import java.io.*;
@@ -15,12 +13,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class FileManager {
-
+	
+	public static final int total_disk_size = 1280000;//KB
     private int disk_size = 1280000;//KB
-    private int chunk_size_bytes = 64000;
+    public static final int chunk_size_bytes = 64000;
     private String main_path;
     private MessageDigest hasher;
-    private ChannelManager channels;
+
     private Mapeador mapeador;
     private ArrayList<String> my_files = new ArrayList<String>();//Ficheiros que eu enviei para backup
 
@@ -28,8 +27,8 @@ public class FileManager {
         Debug.log("BOAS");
     }
 
-    public FileManager(ChannelManager c) throws IOException, NoSuchAlgorithmException {
-        this.channels = c;
+    public FileManager() throws IOException, NoSuchAlgorithmException {
+    	
         this.main_path = System.getProperty("java.class.path") + File.separator + "backup";
         this.mapeador = new Mapeador(this.main_path);
         Path path = Paths.get(this.main_path);
@@ -41,17 +40,20 @@ public class FileManager {
         }
         this.hasher = MessageDigest.getInstance("SHA-256");
     }
-
-    public void get_chunks_from_file(String path) throws IOException {
+    
+    
+    public FileStreamInformation get_chunks_from_file(String path) throws IOException {
 
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
-
+        
         int len = (int)file.toFile().length();
         byte[] file_id = this.generate_file_id(metadata,file.toFile().getName());
         this.my_files.add(file_id.toString());
-        int n_chunks = 0;
+
+        return new FileStreamInformation(file_id, reader);
+        /*int n_chunks = 0;
         byte[] chunk = new byte[this.chunk_size_bytes];
 
         for (int i = 0; i < len - this.chunk_size_bytes + 1; i += this.chunk_size_bytes) {
@@ -67,7 +69,7 @@ public class FileManager {
         reader.read(chunk,len-len % this.chunk_size_bytes, len);
         File_Chunk f_chunk = new File_Chunk(chunk,n_chunks,file_id);
         //TODO enviar a ultima chunk
-        reader.close();
+        reader.close(); */
     }
 
     private byte[] generate_file_id(BasicFileAttributes metadata, String file_name) throws UnsupportedEncodingException {
@@ -77,7 +79,7 @@ public class FileManager {
         return hasher.digest();
     }
 
-    public boolean save_chunk(byte[] chunkData, byte[] fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
+    public boolean save_chunk(byte[] chunkData, String fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
 
         if(!enough_disk_space())
             return false;
@@ -101,18 +103,18 @@ public class FileManager {
         return true;
     }
 
-    private void save_file_chunk_data(byte[] fileID, int chunk_num, int senderID,int replication_degree){
+    public void save_file_chunk_data(String fileID, int chunk_num, int senderID,int replication_degree){
 
         String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
 
         mapeador.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
-    private byte[] get_file_chunk(byte[] fileID, int chunk_num) throws FileNotFoundException {
+    private byte[] get_file_chunk(String fileID, int chunk_num) throws FileNotFoundException {
 
-        //TODO correr ao receber um pedido de GETCHUNK
+        //TODO correr ao receber um pedido de GETCHUNK 
 
-        String path = this.main_path + File.separator + fileID.toString() + File.separator + chunk_num;
+        String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
 
         Path file = Paths.get(path);
         if(!Files.exists(file))
@@ -122,24 +124,25 @@ public class FileManager {
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
         try {
             reader.read(res,0,chunk_size_bytes);
+            reader.close();
         } catch (IOException e) {
-            Debug.log("ERROR","Couldn't read chunk at " + fileID.toString() + ":" + chunk_num);
+            Debug.log("ERROR","Couldn't read chunk at " + fileID + ":" + chunk_num);
         }
-
+       
         //TODO enviar mesagem CHUNK
         return res;
     }
 
-    private boolean delete_file_chunk(byte[] fileID, int chunk_num){
+    private boolean delete_file_chunk(String fileID, int chunk_num){
 
         //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
-        String path = this.main_path + File.separator + fileID.toString() + File.separator + chunk_num;
+        String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
 
         Path file = Paths.get(path);
         try {
             return Files.deleteIfExists(file);
         } catch (IOException e) {
-            Debug.log("ERROR", "Could not delete fileat " + fileID.toString() + ":" + chunk_num);
+            Debug.log("ERROR", "Could not delete fileat " + fileID + ":" + chunk_num);
         }
 
         return false;

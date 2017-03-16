@@ -14,10 +14,16 @@ public class File_Chunk {
     }
 
     public void setFile_id(byte[] file_id) {
+    	this._file_id = "";
         this.file_id = file_id;
+        
+        for(int i = 0; i < file_id.length; i++)
+        	this._file_id += String.format("%02X", file_id[i]);
+		
     }
 
     private byte[] file_id;
+    private String _file_id;
 
     public File_Chunk(byte[] data, int n_chunk, byte[] file_id) {
         this.chunk_data = data;
@@ -28,7 +34,7 @@ public class File_Chunk {
     public File_Chunk(int n_chunk, byte[] file_id) {
         this.chunk_data = null;
         this.n_chunk = n_chunk;
-        this.file_id = file_id;
+        setFile_id(file_id);
     }
 
     public byte[] getChunk_data() {
@@ -39,7 +45,7 @@ public class File_Chunk {
         return n_chunk;
     }
 
-    public byte[] getFile_id() {
-        return file_id;
+    public String getFile_id() {
+        return _file_id;
     }
 }

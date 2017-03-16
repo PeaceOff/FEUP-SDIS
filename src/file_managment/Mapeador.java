@@ -21,22 +21,22 @@ public class Mapeador  {
     }
 
 
-    public void add_entry(String path_to_data, byte[] fileID, int chunk_num, int senderID, int replication_degree) {//Adicionar uma entrada ao hashmap
+    public void add_entry(String path_to_data, String fileID, int chunk_num, int senderID, int replication_degree) {//Adicionar uma entrada ao hashmap
 
-        if(mapeador.containsKey(fileID.toString())){//Ja existe um mapeamento
+        if(mapeador.containsKey(fileID)){//Ja existe um mapeamento
             HashMap<Integer,Pair<Integer,HashSet<Integer>>> temp = mapeador.get(fileID.toString());
-            mapeador.put(fileID.toString(),helper_func(temp,chunk_num,senderID,replication_degree));
+            mapeador.put(fileID,helper_func(temp,chunk_num,senderID,replication_degree));
         } else {//Verificar se o ficheiro existe
             if(Files.exists(Paths.get(path_to_data))){//ler o ficheiro e serializar
                 HashMap<Integer,Pair<Integer,HashSet<Integer>>> hmap = read_from_data_file(Paths.get(path_to_data));
-                mapeador.put(fileID.toString(),helper_func(hmap,chunk_num,senderID,replication_degree));
+                mapeador.put(fileID,helper_func(hmap,chunk_num,senderID,replication_degree));
             } else {
                 HashSet<Integer> hset = new HashSet<Integer>();
                 hset.add(senderID);
                 Pair<Integer,HashSet<Integer>> pair = new Pair<Integer,HashSet<Integer>>(replication_degree,hset);
                 HashMap<Integer,Pair<Integer,HashSet<Integer>>> hmap = new HashMap<Integer,Pair<Integer,HashSet<Integer>>>();
                 hmap.put(chunk_num,pair);
-                mapeador.put(fileID.toString(),hmap);
+                mapeador.put(fileID,hmap);
             }
         }
     }
@@ -61,7 +61,7 @@ public class Mapeador  {
         {
             FileInputStream fis = new FileInputStream(path.toFile());
             ObjectInputStream ois = new ObjectInputStream(fis);
-            res = (HashMap) ois.readObject();
+            res = (HashMap<Integer, Pair<Integer, HashSet<Integer>>>)ois.readObject();
             ois.close();
             fis.close();
         }catch(IOException e)

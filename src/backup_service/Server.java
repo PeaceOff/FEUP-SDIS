@@ -3,26 +3,36 @@ package backup_service;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
 import backup_service.distributor.Distributor;
 import backup_service.distributor.IDistribute;
 import backup_service.distributor.services.*;
 import backup_service.protocols.*;
+import file_managment.FileManager;
+import file_managment.FileStreamInformation;
+import utils.Debug;
 
 import java.io.IOException;
 
 
 
-public class Server implements IBackup, IDistribute {
+public class Server implements IBackup{
 	
     private int id;
     
-    
+    public static final int MAX_RESEND = 5;
     private ChannelManager channelManager;
     private Distributor[] distributors = new Distributor[3];
+    private FileManager fileManager = null;
     
-    public Server(String[] args) throws IOException{
+    
+    public Server(String[] args) throws IOException, NoSuchAlgorithmException{
     	
+    	new FileStreamInformation(new byte[]{(byte)255,(byte)128,15,4}, null);
+    	
+    	fileManager = new FileManager();
     	
     	distributors[0] = new Distributor();
     	distributors[1] = new Distributor();
@@ -30,16 +40,16 @@ public class Server implements IBackup, IDistribute {
     	
     	channelManager = new ChannelManager(args, distributors);
     	
-    	distributors[0].addDistributor("STORED", new Stored());
-    	distributors[0].addDistributor("GETCHUNK", new Restore());
-    	distributors[0].addDistributor("DELETE", new DeleteFile());
-    	distributors[0].addDistributor("REMOVED", new RemoveChunk());
+    	distributors[0].addDistributor("STORED", new Stored(fileManager));
+    	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager));
+    	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
+    	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager));
     	
-    	IDistribute PUTCHUNK = new SaveChunk(channelManager);
+    	IDistribute PUTCHUNK = new SaveChunk(channelManager, fileManager);
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
     	distributors[1].addDistributor("DATA", PUTCHUNK);
     	
-    	IDistribute CHUNK = new RestoreChunk();
+    	IDistribute CHUNK = new RestoreChunk(fileManager);
     	distributors[2].addDistributor("CHUNK", CHUNK);
     	distributors[2].addDistributor("DATA", CHUNK);
     	
@@ -75,10 +85,41 @@ public class Server implements IBackup, IDistribute {
 		}
     	
     }
-    
-    @Override
-    public void backup(String file_id, String rep_degree) {
+	
+	@Override
+    public void backup(String file_path, int rep_degree) {
+    	
+    	try {
+    		
+			FileStreamInformation fs = fileManager.get_chunks_from_file(file_path);
+			byte[] chunkData = new byte[FileManager.chunk_size_bytes];
+			
+			int chunkNo = 0;
+			while(true){
+				
+				if(fs.getStream().available() == 0){ //Was a pair
+					Services.sendPutChunk(channelManager,fs.getFileID(), chunkNo, rep_degree, new byte[]{});
+					break;
+				}
+				
+				int size = fs.getStream().read(chunkData);
+				byte[] data =  Arrays.copyOf(chunkData, size);
+	
+				Services.sendPutChunk(channelManager, fs.getFileID(), chunkNo, rep_degree, data);
 
+				if(size < FileManager.chunk_size_bytes){
+					break;
+				}
+				chunkNo++;
+			}
+			
+		} catch (IOException e) {
+			//RETURN MESSAGE TO THE CLIENT TELLING SOMETHING IS WRONG!
+			e.printStackTrace();
+		}
+    	
+    	
+    	
     }
 
     @Override
@@ -121,21 +162,6 @@ public class Server implements IBackup, IDistribute {
         }
         
     }
-
-
-	@Override
-	public boolean distribute(String line) {
-		
-		return false;
-		
-	}
-
-
-	@Override
-	public void distribute(byte[] data) {
-		// TODO Auto-generated method stub
-		
-	}
 }
 //Chunk -> (fileID,chunkNum) max size : 64KBytes (64000Bytes)
 /*

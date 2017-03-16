@@ -2,10 +2,13 @@ package backup_service.distributor.services;
 
 
 
+import java.io.IOException;
+
 import backup_service.distributor.IDistribute;
 import backup_service.protocols.HeaderInfo;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.MessageConstructor;
+import file_managment.FileManager;
 import utils.Debug;
 
 public class SaveChunk implements  IDistribute {
@@ -14,8 +17,11 @@ public class SaveChunk implements  IDistribute {
 	
 	private HeaderInfo header;
 	
-	public SaveChunk(ChannelManager chnMngr) {
+	private FileManager fileManager;
+	
+	public SaveChunk(ChannelManager chnMngr, FileManager fileManager) {
 		this.chnMngr = chnMngr;
+		this.fileManager = fileManager;
 	}
 	
 	@Override
@@ -25,8 +31,7 @@ public class SaveChunk implements  IDistribute {
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
-		Debug.log(1,"PUTCHUNK","Data:" + header);
-		
+		Debug.log(1,"PUTCHUNK","Datas:" + header);
 		new DelaySender(MessageConstructor.getSTORED(header.fileID, header.chunkNo), chnMngr.getMC());
 		
 		return true;
@@ -36,6 +41,14 @@ public class SaveChunk implements  IDistribute {
 	public void distribute(byte[] data) {
 		
 		Debug.log(2,"PUTCHUNK-DATA","DataSize: " + data.length);
+		
+		try {
+			//save_chunk must save the entry automatically I think it does.
+			fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg);
+		} catch (IOException e) {
+			Debug.log(2,"PUTCHUNK", "Failed to SAVE CHUNK!!!");
+			e.printStackTrace();
+		}
 		
 	}
 	
