@@ -1,8 +1,7 @@
 package file_managment;
 
 import backup_service.protocols.ChannelManager;
-import com.sun.xml.internal.fastinfoset.algorithm.IntEncodingAlgorithm;
-import com.sun.xml.internal.fastinfoset.algorithm.IntegerEncodingAlgorithm;
+import javafx.util.Pair;
 import utils.Debug;
 
 import java.io.*;
@@ -13,19 +12,17 @@ import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class FileManager {
 
+    private static int disk_size = 1280000;//KB
     private int chunk_size_bytes = 64000;
     private String main_path;
     private MessageDigest hasher;
     private ChannelManager channels;
-    private HashMap<String,HashMap<Integer,HashSet<Integer>>> mapeador = new HashMap<String,HashMap<Integer,HashSet<Integer>>>();
-    private ArrayList<String> my_files = new ArrayList<String>();
+    private Mapeador mapeador;
+    private ArrayList<String> my_files = new ArrayList<String>();//Ficheiros que eu enviei para backup
 
     public static void main(String[] args){
         Debug.log("BOAS");
@@ -34,7 +31,9 @@ public class FileManager {
     public FileManager(ChannelManager c) throws IOException, NoSuchAlgorithmException {
         this.channels = c;
         this.main_path = System.getProperty("java.class.path") + File.separator + "backup";
+        this.mapeador = new Mapeador(this.main_path);
         Path path = Paths.get(this.main_path);
+        //TODO verificar primeiro se o directory ja existe?
         try {
             Files.createDirectory(path);
         } catch (FileAlreadyExistsException e) {
@@ -43,29 +42,32 @@ public class FileManager {
         this.hasher = MessageDigest.getInstance("SHA-256");
     }
 
-    public File_Chunk get_chunks_from_file(String path) throws IOException {
+    public void get_chunks_from_file(String path) throws IOException {
 
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
 
-
         int len = (int)file.toFile().length();
         byte[] file_id = this.generate_file_id(metadata,file.toFile().getName());
         this.my_files.add(file_id.toString());
         int n_chunks = 0;
-        byte[][] chunks = new byte[0][this.chunk_size_bytes];
+        byte[] chunk = new byte[this.chunk_size_bytes];
 
         for (int i = 0; i < len - this.chunk_size_bytes + 1; i += this.chunk_size_bytes) {
-            //TODO enviar para o canal apropriado a mensagem de putchunk
 
-            reader.read(chunks[n_chunks++], i, i + this.chunk_size_bytes);
+            reader.read(chunk, i, i + this.chunk_size_bytes);
+
+            File_Chunk f_chunk = new File_Chunk(chunk,n_chunks,file_id);
+            //TODO fazer putchunk da File_Chunk!
+            n_chunks++;
         }
 
         //Ultima chunk, ja garante que se for multiplo a ultima ficara com tamanho 0
-        reader.read(chunks[n_chunks],len-len % this.chunk_size_bytes, len);
+        reader.read(chunk,len-len % this.chunk_size_bytes, len);
+        File_Chunk f_chunk = new File_Chunk(chunk,n_chunks,file_id);
+        //TODO enviar a ultima chunk
         reader.close();
-        return new File_Chunk(chunks[0],n_chunks,file_id);
     }
 
     private byte[] generate_file_id(BasicFileAttributes metadata, String file_name) throws UnsupportedEncodingException {
@@ -75,9 +77,12 @@ public class FileManager {
         return hasher.digest();
     }
 
-    public boolean save_chunck(byte[] chunkData, byte[] fileID, int chunk_num, int senderID) throws IOException {
+    public boolean save_chunk(byte[] chunkData, byte[] fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
 
-        this.save_file_chunk_data(fileID,chunk_num,senderID);
+        if(!enough_disk_space())
+            return false;
+
+        this.save_file_chunk_data(fileID,chunk_num,senderID,replication_degree);
 
         String directory = this.main_path + File.separator + fileID.toString();
         Path folder_path = Paths.get(directory);
@@ -91,81 +96,27 @@ public class FileManager {
         }
 
         Files.write(chunk_path, chunkData);
+        //TODO enviar STORED
 
         return true;
     }
 
-    private void save_file_chunk_data(byte[] fileID, int chunk_num, int senderID){
+    private void save_file_chunk_data(byte[] fileID, int chunk_num, int senderID,int replication_degree){
 
         String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
 
-        if(mapeador.containsKey(fileID.toString())){//Ja existe um mapeamento
-            HashMap<Integer,HashSet<Integer>> temp = mapeador.get(fileID.toString());
-            mapeador.put(fileID.toString(),helper_func(temp,chunk_num,senderID));
-        } else {//Verificar se o ficheiro existe
-            if(Files.exists(Paths.get(path_to_data))){//ler o ficheiro e serializar
-                HashMap<Integer,HashSet<Integer>> hmap = read_from_data_file(Paths.get(path_to_data));
-                mapeador.put(fileID.toString(),helper_func(hmap,chunk_num,senderID));
-            } else {
-                HashSet<Integer> hset = new HashSet<Integer>();
-                hset.add(senderID);
-                HashMap<Integer,HashSet<Integer>> hmap = new HashMap<Integer,HashSet<Integer>>();
-                hmap.put(chunk_num,hset);
-                mapeador.put(fileID.toString(),hmap);
-            }
-
-        }
+        mapeador.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
-    private HashMap<Integer,HashSet<Integer>> helper_func(HashMap<Integer,HashSet<Integer>> hmap, int chunk_num, int senderID){
-
-        if(hmap.containsKey(chunk_num)){
-            hmap.get(chunk_num).add(senderID);
-        } else {
-            HashSet<Integer> hset = new HashSet<Integer>();
-            hset.add(senderID);
-            hmap.put(chunk_num,hset);
-        }
-        return hmap;
+    private boolean enough_disk_space(){
+        return (Paths.get(this.main_path).toFile().length() + this.chunk_size_bytes <= this.disk_size);
     }
 
-    private HashMap<Integer,HashSet<Integer>> read_from_data_file(Path path) {
-
-        HashMap<Integer, HashSet<Integer>> res = null;
-        try
-        {
-            FileInputStream fis = new FileInputStream(path.toFile());
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            res = (HashMap) ois.readObject();
-            ois.close();
-            fis.close();
-        }catch(IOException e)
-        {
-            Debug.log("ERROR"," Failed to open file");
-        } catch (ClassNotFoundException e) {
-            Debug.log("ERROR"," Class not found at reading HashMap");
-        }
-        return res;
+    public static int getDisk_size() {
+        return disk_size;
     }
 
-    private void write_to_data_file(){
-
-        for (HashMap.Entry<String,HashMap<Integer,HashSet<Integer>>> entry : mapeador.entrySet()) {
-            String file_id = entry.getKey();
-            HashMap<Integer,HashSet<Integer>> hmap = entry.getValue();
-            String path = this.main_path + File.separator + file_id + File.separator + "data";
-
-            try {
-                FileOutputStream fos = new FileOutputStream(Paths.get(path).toFile());
-                fos.write(("").getBytes());
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(hmap);
-                oos.close();
-                fos.close();
-            }catch(IOException e)
-            {
-                Debug.log("ERROR"," Could not write file data");
-            }
-        }
+    public static void setDisk_size(int disk_size) {
+        FileManager.disk_size = disk_size;
     }
 }
