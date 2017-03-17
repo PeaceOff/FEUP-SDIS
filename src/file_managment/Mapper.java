@@ -1,6 +1,5 @@
 package file_managment;
 
-import javafx.util.Pair;
 import utils.Debug;
 
 import java.io.*;
@@ -13,7 +12,7 @@ import java.util.Map;
 
 public class Mapper {
 
-    private HashMap<String,HashMap<Integer,Pair<Integer,HashSet<Integer>>>> mapper = new HashMap<>();
+    private HashMap<String,HashMap<Integer, ChunkInfo>> mapper = new HashMap<>();
     private String main_path;
 
     public Mapper(String path) {
@@ -24,44 +23,44 @@ public class Mapper {
     public void add_entry(String path_to_data, String fileID, int chunk_num, int senderID, int replication_degree) {//Adicionar uma entrada ao hashmap
 
         if(mapper.containsKey(fileID)){//Ja existe um mapeamento
-            HashMap<Integer,Pair<Integer,HashSet<Integer>>> temp = mapper.get(fileID.toString());
+            HashMap<Integer, ChunkInfo> temp = mapper.get(fileID.toString());
             mapper.put(fileID,helper_func(temp,chunk_num,senderID,replication_degree));
         } else {//Verificar se o ficheiro existe
             if(Files.exists(Paths.get(path_to_data))){//ler o ficheiro e serializar
-                HashMap<Integer,Pair<Integer,HashSet<Integer>>> hmap = read_from_data_file(Paths.get(path_to_data));
+                HashMap<Integer, ChunkInfo> hmap = read_from_data_file(Paths.get(path_to_data));
                 mapper.put(fileID,helper_func(hmap,chunk_num,senderID,replication_degree));
             } else {
                 HashSet<Integer> hset = new HashSet<Integer>();
                 hset.add(senderID);
-                Pair<Integer,HashSet<Integer>> pair = new Pair<Integer,HashSet<Integer>>(replication_degree,hset);
-                HashMap<Integer,Pair<Integer,HashSet<Integer>>> hmap = new HashMap<Integer,Pair<Integer,HashSet<Integer>>>();
+                ChunkInfo pair = new ChunkInfo(replication_degree,hset);
+                HashMap<Integer, ChunkInfo> hmap = new HashMap<Integer, ChunkInfo>();
                 hmap.put(chunk_num,pair);
                 mapper.put(fileID,hmap);
             }
         }
     }
 
-    private HashMap<Integer, Pair<Integer, HashSet<Integer>>> helper_func(HashMap<Integer,Pair<Integer,HashSet<Integer>>> hmap, int chunk_num, int senderID, int replication_degree){
+    private HashMap<Integer, ChunkInfo> helper_func(HashMap<Integer, ChunkInfo> hmap, int chunk_num, int senderID, int replication_degree){
 
         if(hmap.containsKey(chunk_num)){
-            hmap.get(chunk_num).getValue().add(senderID);
+            hmap.get(chunk_num).add_peer(senderID);
         } else {
             HashSet<Integer> hset = new HashSet<Integer>();
             hset.add(senderID);
-            Pair<Integer,HashSet<Integer>> pair = new Pair<Integer,HashSet<Integer>>(replication_degree,hset);
+            ChunkInfo pair = new ChunkInfo(replication_degree,hset);
             hmap.put(chunk_num,pair);
         }
         return hmap;
     }
 
-    private HashMap<Integer,Pair<Integer,HashSet<Integer>>> read_from_data_file(Path path) {
+    private HashMap<Integer, ChunkInfo> read_from_data_file(Path path) {
 
-        HashMap<Integer, Pair<Integer,HashSet<Integer>>> res = null;
+        HashMap<Integer, ChunkInfo> res = null;
         try
         {
             FileInputStream fis = new FileInputStream(path.toFile());
             ObjectInputStream ois = new ObjectInputStream(fis);
-            res = (HashMap<Integer, Pair<Integer, HashSet<Integer>>>)ois.readObject();
+            res = (HashMap<Integer, ChunkInfo>)ois.readObject();
             ois.close();
             fis.close();
         }catch(IOException e)
@@ -75,9 +74,9 @@ public class Mapper {
 
     private void write_to_data_file(){
 
-        for (Map.Entry<String, HashMap<Integer, Pair<Integer, HashSet<Integer>>>> entry : mapper.entrySet()) {
+        for (Map.Entry<String, HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
             String file_id = entry.getKey();
-            HashMap<Integer, Pair<Integer, HashSet<Integer>>> hmap = entry.getValue();
+            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
             String path = this.main_path + File.separator + file_id + File.separator + "data";
 
             try {
@@ -94,19 +93,24 @@ public class Mapper {
         }
     }
 
-    public File_Chunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
-        //HashMap<String,HashMap<Integer,Pair<Integer,HashSet<Integer>>>>
+    public FileChunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
 
-        File_Chunk res = new File_Chunk(0,null);
+        FileChunk res = new FileChunk(0,null);
         int maior = Integer.MIN_VALUE;
-        for (HashMap.Entry<String,HashMap<Integer,Pair<Integer,HashSet<Integer>>>> entry : mapper.entrySet()) {
+
+        for (HashMap.Entry<String,HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
+
             String file_id = entry.getKey();
-            HashMap<Integer, Pair<Integer,HashSet<Integer>>> hmap = entry.getValue();
-            for(Map.Entry<Integer, Pair<Integer, HashSet<Integer>>> entry1 : hmap.entrySet()) {
+            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
+
+            for(Map.Entry<Integer, ChunkInfo> entry1 : hmap.entrySet()) {
+
                 int chunk_n = entry1.getKey();
-                Pair<Integer, HashSet<Integer>> peers = entry1.getValue();
-                int dif = peers.getKey() - peers.getValue().size();
+                ChunkInfo peers = entry1.getValue();
+                int dif = peers.getRep_degree() - peers.get_peer_count();
+
                 if(dif >= maior){
+
                     maior = dif;
                     res.setFile_id(file_id.getBytes());
                     res.setN_chunk(chunk_n);
@@ -114,5 +118,24 @@ public class Mapper {
             }
         }
         return res;
+    }
+
+    public void file_removed(String fileID){
+
+        if(mapper.containsKey(fileID))
+            mapper.remove(fileID);
+    }
+
+    public void chunk_removed(String fileID,int chunk_no){
+
+        if(!mapper.containsKey(fileID))
+            return;
+
+        HashMap<Integer, ChunkInfo> hmap = mapper.get(fileID);
+
+        if(hmap.containsKey(chunk_no))
+            hmap.remove(chunk_no);
+
+        mapper.get(fileID).remove(chunk_no);
     }
 }

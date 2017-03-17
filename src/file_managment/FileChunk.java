@@ -1,7 +1,7 @@
 package file_managment;
 
 
-public class File_Chunk {
+public class FileChunk {
     private byte[] chunk_data;
     private int n_chunk;
 
@@ -25,13 +25,13 @@ public class File_Chunk {
     private byte[] file_id;
     private String _file_id;
 
-    public File_Chunk(byte[] data, int n_chunk, byte[] file_id) {
+    public FileChunk(byte[] data, int n_chunk, byte[] file_id) {
         this.chunk_data = data;
         this.n_chunk = n_chunk;
         this.file_id = file_id;
     }
 
-    public File_Chunk(int n_chunk, byte[] file_id) {
+    public FileChunk(int n_chunk, byte[] file_id) {
         this.chunk_data = null;
         this.n_chunk = n_chunk;
         setFile_id(file_id);

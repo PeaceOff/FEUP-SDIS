@@ -11,7 +11,7 @@ public interface IBackup extends Remote{
 
     void restore(String file_id) throws RemoteException;
 
-    void reclaim(String space) throws RemoteException;
+    void reclaim(int space) throws RemoteException;
 
     String state() throws RemoteException;
 }

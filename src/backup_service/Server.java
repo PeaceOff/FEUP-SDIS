@@ -29,9 +29,7 @@ public class Server implements IBackup{
     
     
     public Server(String[] args) throws IOException, NoSuchAlgorithmException{
-    	
-    	new FileStreamInformation(new byte[]{(byte)255,(byte)128,15,4}, null);
-    	
+
     	fileManager = new FileManager();
     	
     	distributors[0] = new Distributor();
@@ -133,7 +131,7 @@ public class Server implements IBackup{
     }
 
     @Override
-    public void reclaim(String space) {
+    public void reclaim(int space) {
 
     }
 

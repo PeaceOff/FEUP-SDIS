@@ -8,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -18,10 +17,9 @@ public class FileManager {
     private int disk_size = 1280000;//KB
     public static final int chunk_size_bytes = 64000;
     private String main_path;
-    private MessageDigest hasher;
-
     private Mapper mapper;
-    private ArrayList<String> my_files = new ArrayList<String>();//Ficheiros que eu enviei para backup
+    //TODO alterar para a classe METADATA
+    private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
 
     public static void main(String[] args){
         Debug.log("BOAS");
@@ -38,7 +36,6 @@ public class FileManager {
         } catch (FileAlreadyExistsException e) {
             System.out.println("Directory already exists!");
         }
-        this.hasher = MessageDigest.getInstance("SHA-256");
     }
     
     
@@ -49,34 +46,10 @@ public class FileManager {
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
         
         int len = (int)file.toFile().length();
-        byte[] file_id = this.generate_file_id(metadata,file.toFile().getName());
-        this.my_files.add(file_id.toString());
+        Metadata file_data = new Metadata(file.toFile().getName(),metadata);
+        this.my_files.add(file_data);
 
-        return new FileStreamInformation(file_id, reader);
-        /*int n_chunks = 0;
-        byte[] chunk = new byte[this.chunk_size_bytes];
-
-        for (int i = 0; i < len - this.chunk_size_bytes + 1; i += this.chunk_size_bytes) {
-
-            reader.read(chunk, i, i + this.chunk_size_bytes);
-
-            File_Chunk f_chunk = new File_Chunk(chunk,n_chunks,file_id);
-            //TODO fazer putchunk da File_Chunk!
-            n_chunks++;
-        }
-
-        //Ultima chunk, ja garante que se for multiplo a ultima ficara com tamanho 0
-        reader.read(chunk,len-len % this.chunk_size_bytes, len);
-        File_Chunk f_chunk = new File_Chunk(chunk,n_chunks,file_id);
-        //TODO enviar a ultima chunk
-        reader.close(); */
-    }
-
-    private byte[] generate_file_id(BasicFileAttributes metadata, String file_name) throws UnsupportedEncodingException {
-
-        String identifier = file_name + metadata.creationTime().toString() + metadata.lastModifiedTime().toString() + metadata.size()+toString();
-        this.hasher.update(identifier.getBytes("ASCII"));
-        return hasher.digest();
+        return new FileStreamInformation(file_data.get_file_id(), reader);
     }
 
     public boolean save_chunk(byte[] chunkData, String fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
@@ -110,7 +83,7 @@ public class FileManager {
         mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
-    private byte[] get_file_chunk(String fileID, int chunk_num) throws FileNotFoundException {
+    private byte[] get_file_chunk(String fileID, int chunk_num) {
 
         //TODO correr ao receber um pedido de GETCHUNK 
 
@@ -121,16 +94,36 @@ public class FileManager {
             return null;
 
         byte[] res = new byte[chunk_size_bytes];
-        BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
+
         try {
+
+            BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
             reader.read(res,0,chunk_size_bytes);
             reader.close();
+
         } catch (IOException e) {
-            Debug.log("ERROR","Couldn't read chunk at " + fileID + ":" + chunk_num);
+            Debug.log("ERROR","Couldn't open/read chunk at " + fileID + ":" + chunk_num);
         }
        
         //TODO enviar mesagem CHUNK
         return res;
+    }
+
+    private boolean delete_file(String fileID){
+
+        String path = this.main_path + File.separator + fileID;
+
+        Path folder = Paths.get(path);
+
+        try{
+            Files.deleteIfExists(folder);
+            mapper.file_removed(fileID);
+            return true;
+        } catch (IOException e) {
+            Debug.log("ERROR", "Could not delete folder at " + fileID);
+        }
+
+        return false;
     }
 
     private boolean delete_file_chunk(String fileID, int chunk_num){
@@ -140,9 +133,11 @@ public class FileManager {
 
         Path file = Paths.get(path);
         try {
-            return Files.deleteIfExists(file);
+            Files.deleteIfExists(file);
+            mapper.chunk_removed(fileID,chunk_num);
+            return true;
         } catch (IOException e) {
-            Debug.log("ERROR", "Could not delete fileat " + fileID + ":" + chunk_num);
+            Debug.log("ERROR", "Could not delete file at " + fileID + ":" + chunk_num);
         }
 
         return false;
@@ -152,7 +147,7 @@ public class FileManager {
 
         File directory = Paths.get(this.main_path).toFile();
         while(directory.length() > this.disk_size){
-            File_Chunk delete = this.mapper.get_chunk_to_delete();
+            FileChunk delete = this.mapper.get_chunk_to_delete();
 
             if(!this.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
                 Debug.log("ERROR", "Could not delete file! " + delete.toString());

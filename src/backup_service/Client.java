@@ -53,7 +53,7 @@ public class Client {
                 peer.restore(this.operand_1);
                 break;
             case "RECLAIM":
-                peer.reclaim(this.operand_1);
+                peer.reclaim(Integer.parseInt(this.operand_1));
                 break;
             case "STATE":
                 String res = peer.state();
