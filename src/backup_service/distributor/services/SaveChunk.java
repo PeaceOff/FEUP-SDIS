@@ -43,8 +43,10 @@ public class SaveChunk implements  IDistribute {
 		Debug.log(2,"PUTCHUNK-DATA","DataSize: " + data.length);
 		
 		try {
-			//save_chunk must save the entry automatically I think it does.
+			
 			fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg);
+				
+			
 		} catch (IOException e) {
 			Debug.log(2,"PUTCHUNK", "Failed to SAVE CHUNK!!!");
 			e.printStackTrace();

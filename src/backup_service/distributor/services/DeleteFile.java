@@ -19,7 +19,7 @@ public class DeleteFile implements IDistribute {
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
-		//fileManager.deleteFile;
+		fileManager.delete_file(header.fileID);
 		
 		return true;
 	}

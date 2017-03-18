@@ -1,14 +1,38 @@
 package backup_service.distributor;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Distributor {
 	
 	public HashMap<String, IDistribute> distributor = new HashMap<String, IDistribute>();
+	public HashMap<String, ArrayList<IMessageListener>> msgLstnr = new HashMap<String, ArrayList<IMessageListener>>();
 	
 	public void addDistributor(String name, IDistribute service){
 		
 		distributor.put(name, service);
+		
+	}
+	
+	public void removeListener(String name, IMessageListener lstnr){
+		
+		if(msgLstnr.containsKey(name)){
+			msgLstnr.get(name).remove(lstnr);
+		}
+		
+	}
+	
+	public void addListener(String name, IMessageListener service){
+			
+		ArrayList<IMessageListener> array = null;
+		if(msgLstnr.containsKey(name))
+			array = msgLstnr.get(name);
+		else{
+			array = new ArrayList<IMessageListener>();
+			msgLstnr.put(name, array);
+		}
+		
+		array.add(service);
 		
 	}
 	
@@ -20,6 +44,11 @@ public class Distributor {
 		if(distributor.containsKey(cmd)){
 			if(!distributor.get(cmd).distribute(line)){
 				return false;
+			}
+		}
+		if(msgLstnr.containsKey(cmd)){
+			for(IMessageListener lstnr : msgLstnr.get(cmd)){
+				lstnr.messageReceived(line);
 			}
 		}
 		return true;

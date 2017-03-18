@@ -21,6 +21,10 @@ public class Subprotocol {
 		connection.start();
 	}
 	
+	public Distributor getDistributor(){
+		return distributor;
+	}
+	
 	public static String getVersion() {
 		return ChannelManager.getVersion();
 	}

@@ -20,10 +20,8 @@ public class Stored implements IDistribute {
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
-		//MARK AS TEMPORARY IF IT IS THE OWNER OF THE FILE!!!
 		fileManager.save_file_chunk_data(header.fileID, header.chunkNo, header.senderID, header.replicationDeg); 
-		//
-		
+	
 		Debug.log(1,"STORED","Data:" + header);
 		return true;
 	}

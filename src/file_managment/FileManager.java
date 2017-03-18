@@ -20,14 +20,16 @@ public class FileManager {
     private Mapper mapper;
     //TODO alterar para a classe METADATA
     private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
-
+    
+    private ChunkManager chunkManager = new ChunkManager();
+    
     public static void main(String[] args){
         Debug.log("BOAS");
     }
 
-    public FileManager() throws IOException, NoSuchAlgorithmException {
+    public FileManager(String folderName) throws IOException, NoSuchAlgorithmException {
     	
-        this.main_path = System.getProperty("java.class.path") + File.separator + "backup";
+        this.main_path = System.getProperty("java.class.path") + File.separator + folderName;
         this.mapper = new Mapper(this.main_path);
         Path path = Paths.get(this.main_path);
         //TODO verificar primeiro se o directory ja existe?
@@ -38,9 +40,26 @@ public class FileManager {
         }
     }
     
+    public FileOutputStream createFile(String fileName) throws IOException{
+    	String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
+    	
+    	createDirecotry(directory);
+    	
+    	File file = new File(directory + File.separator + fileName);
+    	
+    	FileOutputStream of = new FileOutputStream(file);
+    	return of;
+    }
+    
+    public void createDirecotry(String directory) throws IOException{
+    	Path path = Paths.get(directory);
+    	if(!Files.exists(Paths.get(directory))){
+    		Files.createDirectory(path);
+    	}
+    }
     
     public FileStreamInformation get_chunks_from_file(String path) throws IOException {
-
+    	
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
@@ -66,12 +85,11 @@ public class FileManager {
 
         Path chunk_path = Paths.get(directory + File.separator + Integer.toString(chunk_num));
         if(Files.exists(chunk_path)) {//Ja se guardou a chunk
-            //TODO enviar STORED
-            return false;
+            return true;
         }
 
         Files.write(chunk_path, chunkData);
-        //TODO enviar STORED
+        
 
         return true;
     }
@@ -83,7 +101,7 @@ public class FileManager {
         mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
-    private byte[] get_file_chunk(String fileID, int chunk_num) {
+    public byte[] get_file_chunk(String fileID, int chunk_num) {
 
         //TODO correr ao receber um pedido de GETCHUNK 
 
@@ -98,7 +116,8 @@ public class FileManager {
         try {
 
             BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
-            reader.read(res,0,chunk_size_bytes);
+            int size = reader.read(res,0,chunk_size_bytes);
+            res = Arrays.copyOf(res, size);
             reader.close();
 
         } catch (IOException e) {
@@ -109,7 +128,7 @@ public class FileManager {
         return res;
     }
 
-    private boolean delete_file(String fileID){
+    public boolean delete_file(String fileID){
 
         String path = this.main_path + File.separator + fileID;
 
@@ -126,7 +145,7 @@ public class FileManager {
         return false;
     }
 
-    private boolean delete_file_chunk(String fileID, int chunk_num){
+    public boolean delete_file_chunk(String fileID, int chunk_num){
 
         //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
@@ -168,4 +187,10 @@ public class FileManager {
         this.disk_size = disk_size;
         this.new_disk_size();
     }
+
+	public ChunkManager getChunkManager() {
+		return chunkManager;
+	}
+    
+    
 }

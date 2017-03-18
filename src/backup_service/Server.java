@@ -10,10 +10,13 @@ import backup_service.distributor.Distributor;
 import backup_service.distributor.IDistribute;
 import backup_service.distributor.services.*;
 import backup_service.protocols.*;
+import file_managment.ChunkManager;
 import file_managment.FileManager;
+import file_managment.FilePartitioned;
 import file_managment.FileStreamInformation;
 import utils.Debug;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 
@@ -26,20 +29,21 @@ public class Server implements IBackup{
     private ChannelManager channelManager;
     private Distributor[] distributors = new Distributor[3];
     private FileManager fileManager = null;
-    
+    private Services services = null;
     
     public Server(String[] args) throws IOException, NoSuchAlgorithmException{
-
-    	fileManager = new FileManager();
+    	
+    	fileManager = new FileManager("Backup!"+args[4]);
     	
     	distributors[0] = new Distributor();
     	distributors[1] = new Distributor();
     	distributors[2] = new Distributor();
     	
     	channelManager = new ChannelManager(args, distributors);
-    	
+    	services = new Services(channelManager);
+;    	
     	distributors[0].addDistributor("STORED", new Stored(fileManager));
-    	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager));
+    	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
     	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
     	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager));
     	
@@ -76,7 +80,11 @@ public class Server implements IBackup{
     	
     	Subprotocol mdb = channelManager.getMDB();
     	try {
-			mdb.sendMessage(MessageConstructor.getPUTCHUNK("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 255, 3, new byte[]{1,2,3}));
+    		if(channelManager.getServerID() == 1)
+    			services.sendPutChunk("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 255, 3, new byte[]{1,2,3});
+    		if(channelManager.getServerID() == 2)
+    			this.channelManager.getMC().sendMessage(MessageConstructor.getGETCHUNK("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 1));
+    		
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -86,9 +94,8 @@ public class Server implements IBackup{
 	
 	@Override
     public void backup(String file_path, int rep_degree) {
-    	
+    	Debug.log("BACKUP PATH:", file_path);
     	try {
-    		
 			FileStreamInformation fs = fileManager.get_chunks_from_file(file_path);
 			byte[] chunkData = new byte[FileManager.chunk_size_bytes];
 			
@@ -96,14 +103,14 @@ public class Server implements IBackup{
 			while(true){
 				
 				if(fs.getStream().available() == 0){ //Was a pair
-					Services.sendPutChunk(channelManager,fs.getFileID(), chunkNo, rep_degree, new byte[]{});
+					services.sendPutChunk(fs.getFileID(), chunkNo, rep_degree, new byte[]{});
 					break;
 				}
 				
 				int size = fs.getStream().read(chunkData);
 				byte[] data =  Arrays.copyOf(chunkData, size);
 	
-				Services.sendPutChunk(channelManager, fs.getFileID(), chunkNo, rep_degree, data);
+				services.sendPutChunk(fs.getFileID(), chunkNo, rep_degree, data);
 
 				if(size < FileManager.chunk_size_bytes){
 					break;
@@ -122,12 +129,54 @@ public class Server implements IBackup{
 
     @Override
     public void delete(String file_id) {
-
+    	try {
+			channelManager.getMC().sendMessage(MessageConstructor.getDELETE(file_id));
+		} catch (IOException e) {
+		}
     }
 
     @Override
     public void restore(String file_id) {
-
+    	FileOutputStream fs;
+    	
+    	try {
+			fs = fileManager.createFile(file_id);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return;
+		}
+    	
+    	FilePartitioned filePart = fileManager.getChunkManager().ListenToFile(file_id);
+    	
+    	int chunkCounter = 0;
+    	while(true){
+    		try {
+				
+    			this.channelManager.getMC().sendMessage(MessageConstructor.getGETCHUNK(file_id, chunkCounter));
+				Debug.log("Sent GETCHUNK" + chunkCounter);
+				Thread.sleep(2000);
+				
+				byte[] chunk = filePart.getChunk(chunkCounter);
+				if(chunk != null){
+					chunkCounter++;
+					fs.write(chunk);
+					if(filePart.totalChunks() > -1)
+						if(chunkCounter > filePart.totalChunks())
+							break;
+				}else{
+					Debug.log("Error Receiving CHUNK Retrying!");
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    	
+    	fileManager.getChunkManager().StopListen(file_id);
+    	
     }
 
     @Override
