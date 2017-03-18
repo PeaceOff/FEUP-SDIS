@@ -154,7 +154,7 @@ public class Server implements IBackup{
 				
     			this.channelManager.getMC().sendMessage(MessageConstructor.getGETCHUNK(file_id, chunkCounter));
 				Debug.log("Sent GETCHUNK" + chunkCounter);
-				Thread.sleep(2000);
+				Thread.sleep(600);
 				
 				byte[] chunk = filePart.getChunk(chunkCounter);
 				if(chunk != null){
@@ -174,7 +174,12 @@ public class Server implements IBackup{
 				e.printStackTrace();
 			}
     	}
-    	
+    	try {
+			fs.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     	fileManager.getChunkManager().StopListen(file_id);
     	
     }
