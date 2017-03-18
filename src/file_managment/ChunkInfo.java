@@ -37,6 +37,13 @@ public class ChunkInfo implements Serializable{
         return this.peers.size();
     }
 
+    public void remove_peer(int peer){
+
+        if(peers.contains(peer))
+            peers.remove(peer);
+
+    }
+
     public boolean can_delete(){
         return (rep_degree > (peers.size() - 1));
     }

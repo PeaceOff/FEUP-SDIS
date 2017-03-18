@@ -68,12 +68,26 @@ public class FileManager {
         Metadata file_data = new Metadata(file.toFile().getName(),metadata);
         this.my_files.add(file_data);
 
-        return new FileStreamInformation(file_data.get_file_id(), reader);
+        return new FileStreamInformation(file_data.fileID, reader);
+    }
+
+    private boolean is_my_file(String fileID){
+
+        for(int i = 0; i < my_files.size(); i++){
+
+            if(my_files.get(i).fileID.equals(fileID))
+                return true;
+        }
+
+        return false;
     }
 
     public boolean save_chunk(byte[] chunkData, String fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
 
         if(!enough_disk_space())
+            return false;
+
+        if(is_my_file(fileID))
             return false;
 
         this.save_file_chunk_data(fileID,chunk_num,senderID,replication_degree);
@@ -89,7 +103,6 @@ public class FileManager {
         }
 
         Files.write(chunk_path, chunkData);
-        
 
         return true;
     }
@@ -160,6 +173,12 @@ public class FileManager {
         }
 
         return false;
+    }
+
+    public void peer_deleted_chunk(String fileID, int chunk_no, int senderID){
+
+        mapper.peer_removed_chunk(fileID,chunk_no,senderID);
+
     }
 
     private void new_disk_size(){//Limpar o disco até atingir o nome espaço desejado

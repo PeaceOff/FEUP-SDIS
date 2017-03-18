@@ -25,10 +25,12 @@ public class Mapper {
         if(mapper.containsKey(fileID)){//Ja existe um mapeamento
             HashMap<Integer, ChunkInfo> temp = mapper.get(fileID.toString());
             mapper.put(fileID,helper_func(temp,chunk_num,senderID,replication_degree));
+            save(fileID);
         } else {//Verificar se o ficheiro existe
             if(Files.exists(Paths.get(path_to_data))){//ler o ficheiro e serializar
                 HashMap<Integer, ChunkInfo> hmap = read_from_data_file(Paths.get(path_to_data));
                 mapper.put(fileID,helper_func(hmap,chunk_num,senderID,replication_degree));
+                save(fileID);
             } else {
                 HashSet<Integer> hset = new HashSet<Integer>();
                 hset.add(senderID);
@@ -36,7 +38,64 @@ public class Mapper {
                 HashMap<Integer, ChunkInfo> hmap = new HashMap<Integer, ChunkInfo>();
                 hmap.put(chunk_num,pair);
                 mapper.put(fileID,hmap);
+                save(fileID);
             }
+        }
+    }
+
+    public void save(String fileID){
+
+        write_data_file(fileID);
+
+    }
+
+    public int get_local_count(String fileID, int chunk_no){
+
+        if(exists(fileID,chunk_no))
+            return mapper.get(fileID).get(chunk_no).get_peer_count();
+
+        return -1;
+
+    }
+
+    private boolean check_for_file(String fileID, int chunk_num) {
+
+        String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
+        String folder = this.main_path + File.separator + fileID + File.separator + "data";
+
+        if(Files.exists(Paths.get(path))){
+
+            HashMap<Integer,ChunkInfo> hmap = read_from_data_file(Paths.get(folder));
+            mapper.put(fileID,hmap);
+            save(fileID);
+
+        } else {
+
+            return false;
+
+        }
+
+        return true;
+    }
+
+    public boolean exists(String fileID,int chunk_num){
+
+        if(mapper.containsKey(fileID)) {
+
+            if(mapper.get(fileID).containsKey(chunk_num)){
+
+                return true;
+
+            } else {
+
+                return check_for_file(fileID,chunk_num);
+
+            }
+
+        } else {
+
+            return check_for_file(fileID,chunk_num);
+
         }
     }
 
@@ -72,24 +131,55 @@ public class Mapper {
         return res;
     }
 
+    private void write_data_file(String file_id, HashMap<Integer,ChunkInfo> hmap){
+
+
+        String path = this.main_path + File.separator + file_id + File.separator + "data";
+
+        write_slave(path,hmap);
+
+    }
+
+    private void write_slave(String path, HashMap<Integer,ChunkInfo> hmap) {
+
+        try {
+
+            FileOutputStream fos = new FileOutputStream(Paths.get(path).toFile());
+            fos.write(("").getBytes());
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(hmap);
+            oos.close();
+            fos.close();
+
+        }catch(IOException e)
+        {
+            Debug.log("ERROR"," Could not write file data");
+        }
+
+    }
+
+    private void write_data_file(String file_id){
+
+
+        String path = this.main_path + File.separator + file_id + File.separator + "data";
+
+        if(!mapper.containsKey(file_id))
+            return;
+
+        HashMap<Integer,ChunkInfo> hmap = mapper.get(file_id);
+
+        write_slave(path,hmap);
+
+    }
+
     private void write_to_data_file(){
 
         for (Map.Entry<String, HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
+
             String file_id = entry.getKey();
             HashMap<Integer, ChunkInfo> hmap = entry.getValue();
-            String path = this.main_path + File.separator + file_id + File.separator + "data";
+            write_data_file(file_id,hmap);
 
-            try {
-                FileOutputStream fos = new FileOutputStream(Paths.get(path).toFile());
-                fos.write(("").getBytes());
-                ObjectOutputStream oos = new ObjectOutputStream(fos);
-                oos.writeObject(hmap);
-                oos.close();
-                fos.close();
-            }catch(IOException e)
-            {
-                Debug.log("ERROR"," Could not write file data");
-            }
         }
     }
 
@@ -137,5 +227,14 @@ public class Mapper {
             hmap.remove(chunk_no);
 
         mapper.get(fileID).remove(chunk_no);
+    }
+
+    public void peer_removed_chunk(String fileID, int chunk_no, int senderID) {
+
+        if(exists(fileID,chunk_no)){
+
+            mapper.get(fileID).get(chunk_no).remove_peer(senderID);
+
+        }
     }
 }

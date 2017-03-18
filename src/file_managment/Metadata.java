@@ -2,18 +2,20 @@ package file_managment;
 
 import utils.Debug;
 
+import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Metadata {
+public class Metadata implements Serializable {
 
     private String file_name;
     private String creation_time;
     private String last_modification;
     private long size;
     private MessageDigest hasher;
+    public String fileID;
 
     public Metadata(String file_name,BasicFileAttributes metadata)  {
 
@@ -26,12 +28,17 @@ public class Metadata {
         } catch (NoSuchAlgorithmException e) {
             Debug.log("ERROR","ALgorithm does not exist!");
         }
+        this.fileID = this.get_file_id();
     }
 
-    public String get_file_id() throws UnsupportedEncodingException {
+    private String get_file_id() {
 
         String identifier = file_name + creation_time + last_modification + size;
-        this.hasher.update(identifier.getBytes("ASCII"));
+        try {
+            this.hasher.update(identifier.getBytes("ASCII"));
+        } catch (UnsupportedEncodingException e) {
+            Debug.log("ERROR","Could not find hasher identifier ASCII");
+        }
 
         byte[] fileID = hasher.digest();
         String sfileID = "";
