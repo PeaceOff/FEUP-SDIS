@@ -90,8 +90,6 @@ public class FileManager {
         if(is_my_file(fileID))
             return false;
 
-        this.save_file_chunk_data(fileID,chunk_num,senderID,replication_degree);
-
         String directory = this.main_path + File.separator + fileID.toString();
         Path folder_path = Paths.get(directory);
         if(!Files.exists(folder_path))//Ainda nao existe a pasta
@@ -103,6 +101,8 @@ public class FileManager {
         }
 
         Files.write(chunk_path, chunkData);
+
+        this.save_file_chunk_data(fileID,chunk_num,senderID,replication_degree);
 
         return true;
     }
