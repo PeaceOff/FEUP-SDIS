@@ -13,12 +13,11 @@ import java.util.*;
 
 public class FileManager {
 	
-	public static final int total_disk_size = 1280000;//KB
     private int disk_size = 1280000;//KB
     public static final int chunk_size_bytes = 64000;
     private String main_path;
     private Mapper mapper;
-    //TODO alterar para a classe METADATA
+
     private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
     
     private ChunkManager chunkManager = new ChunkManager();
@@ -108,7 +107,10 @@ public class FileManager {
     }
 
     public void save_file_chunk_data(String fileID, int chunk_num, int senderID,int replication_degree){
-
+    	
+    	if(is_my_file(fileID))
+    		return;
+    	
         String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
 
         mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
@@ -140,22 +142,29 @@ public class FileManager {
         //TODO enviar mesagem CHUNK
         return res;
     }
-
-    public boolean delete_file(String fileID){
+    
+    private void recursiveDelete(File file){
+    	
+    	if(!file.exists())
+    		return;
+    	
+    	if(file.isDirectory()){
+    		for(File f : file.listFiles())
+    			recursiveDelete(f);
+    	}
+    	
+    	file.delete();
+    	
+    }
+    
+    public void delete_file(String fileID){
 
         String path = this.main_path + File.separator + fileID;
 
         Path folder = Paths.get(path);
 
-        try{
-            Files.deleteIfExists(folder);
-            mapper.file_removed(fileID);
-            return true;
-        } catch (IOException e) {
-            Debug.log("ERROR", "Could not delete folder at " + fileID);
-        }
-
-        return false;
+        recursiveDelete(folder.toFile());
+		mapper.file_removed(fileID);
     }
 
     public boolean delete_file_chunk(String fileID, int chunk_num){
@@ -175,40 +184,56 @@ public class FileManager {
         return false;
     }
 
-    public void peer_deleted_chunk(String fileID, int chunk_no, int senderID){
+    public boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID){
 
-        mapper.peer_removed_chunk(fileID,chunk_no,senderID);
+        return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
 
     }
 
     private void new_disk_size(){//Limpar o disco até atingir o nome espaço desejado
 
         File directory = Paths.get(this.main_path).toFile();
-        while(directory.length() > this.disk_size){
-            FileChunk delete = this.mapper.get_chunk_to_delete();
-
-            if(!this.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
-                Debug.log("ERROR", "Could not delete file! " + delete.toString());
-
-            //TODO enviar o comando de REMOVED
-        }
+       
     }
-
+    
+    public static long getFolderSize(File folder) {
+        long length = 0;
+        File[] files = folder.listFiles();
+     
+        int count = files.length;
+     
+        for (int i = 0; i < count; i++) {
+            if (files[i].isFile()) {
+                length += files[i].length();
+            }
+            else {
+                length += getFolderSize(files[i]);
+            }
+        }
+        return length;
+    }
+    
     private boolean enough_disk_space(){
-        return (Paths.get(this.main_path).toFile().length() + this.chunk_size_bytes <= this.disk_size);
+        return (getFolderSize(Paths.get(this.main_path).toFile()) + this.chunk_size_bytes <= this.disk_size);
     }
 
     public int getDisk_size() {
         return disk_size;
     }
 
-    public void setDisk_size(int disk_size) {
+    public File setDisk_size(int disk_size) {
         this.disk_size = disk_size;
-        this.new_disk_size();
+  
+        return Paths.get(this.main_path).toFile();
     }
 
 	public ChunkManager getChunkManager() {
 		return chunkManager;
+	}
+
+	public Mapper getMapper() {
+		// TODO Auto-generated method stub
+		return mapper;
 	}
     
     

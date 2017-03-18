@@ -32,7 +32,7 @@ public class SaveChunk implements  IDistribute {
 			return false;
 		
 		Debug.log(1,"PUTCHUNK","Datas:" + header);
-		new DelaySender(MessageConstructor.getSTORED(header.fileID, header.chunkNo), chnMngr.getMC());
+		
 		
 		return true;
 	}
@@ -44,7 +44,8 @@ public class SaveChunk implements  IDistribute {
 		
 		try {
 			
-			fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg);
+			if(fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg))
+				new DelaySender(MessageConstructor.getSTORED(header.fileID, header.chunkNo), chnMngr.getMC());
 				
 			
 		} catch (IOException e) {

@@ -62,15 +62,15 @@ public class Mapper {
 
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
         String folder = this.main_path + File.separator + fileID + File.separator + "data";
-
+        Debug.log(path); 
         if(Files.exists(Paths.get(path))){
-
+        	Debug.log("POTATO");
             HashMap<Integer,ChunkInfo> hmap = read_from_data_file(Paths.get(folder));
             mapper.put(fileID,hmap);
             save(fileID);
 
         } else {
-
+        	Debug.log("BATATO");
             return false;
 
         }
@@ -187,9 +187,13 @@ public class Mapper {
 
         FileChunk res = new FileChunk(0,null);
         int maior = Integer.MIN_VALUE;
-
+        
+        int n = 0;
+        
+        
         for (HashMap.Entry<String,HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
-
+        	
+        	
             String file_id = entry.getKey();
             HashMap<Integer, ChunkInfo> hmap = entry.getValue();
 
@@ -198,7 +202,13 @@ public class Mapper {
                 int chunk_n = entry1.getKey();
                 ChunkInfo peers = entry1.getValue();
                 int dif = peers.getRep_degree() - peers.get_peer_count();
-
+                
+                if(n == 0){
+                	n++;
+                	res.setFile_id(file_id);
+                    res.setN_chunk(chunk_n);
+                }
+                
                 if(dif >= maior){
 
                     maior = dif;
@@ -229,12 +239,16 @@ public class Mapper {
         mapper.get(fileID).remove(chunk_no);
     }
 
-    public void peer_removed_chunk(String fileID, int chunk_no, int senderID) {
+    public boolean peer_removed_chunk(String fileID, int chunk_no, int senderID) {
 
         if(exists(fileID,chunk_no)){
-
-            mapper.get(fileID).get(chunk_no).remove_peer(senderID);
+        	Debug.log("EXISTS!");
+        	
+            return mapper.get(fileID).get(chunk_no).remove_peer(senderID);
 
         }
+        Debug.log("DONT EXIST!");
+ 
+        return false;
     }
 }

@@ -11,11 +11,13 @@ import backup_service.distributor.IDistribute;
 import backup_service.distributor.services.*;
 import backup_service.protocols.*;
 import file_managment.ChunkManager;
+import file_managment.FileChunk;
 import file_managment.FileManager;
 import file_managment.FilePartitioned;
 import file_managment.FileStreamInformation;
 import utils.Debug;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -45,7 +47,7 @@ public class Server implements IBackup{
     	distributors[0].addDistributor("STORED", new Stored(fileManager));
     	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
     	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
-    	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager));
+    	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager, fileManager));
     	
     	IDistribute PUTCHUNK = new SaveChunk(channelManager, fileManager);
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
@@ -84,6 +86,8 @@ public class Server implements IBackup{
     			services.sendPutChunk("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 255, 3, new byte[]{1,2,3});
     		if(channelManager.getServerID() == 2)
     			this.channelManager.getMC().sendMessage(MessageConstructor.getGETCHUNK("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 1));
+    		if(channelManager.getServerID() == 3)
+    			this.channelManager.getMC().sendMessage(MessageConstructor.getREMOVED("9DF839A8DDC6641A43BA14AD8EFE1A10E7142CAB18AB8E40B7C9691021467B3B", 1));
     		
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -184,9 +188,36 @@ public class Server implements IBackup{
     	
     }
 
+    
+    
     @Override
     public void reclaim(int space) {
+    	File directory = fileManager.setDisk_size(space);
+    	Debug.log("RECLAIM", "NewSPACE " + space + "KB");
+    	Debug.log("RECLAIM", "DIRECTORY SIZE" + directory.length() + "KB");
+    	
+    	while(FileManager.getFolderSize(directory) > fileManager.getDisk_size() * 1000){
+             FileChunk delete = fileManager.getMapper().get_chunk_to_delete();
 
+             if(!fileManager.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
+                 Debug.log("ERROR", "Could not delete file! " + delete.toString());
+             
+             try {
+				this.channelManager.getMC().sendMessage(MessageConstructor.getREMOVED(delete.getFile_id(), delete.getN_chunk()));
+				Thread.sleep(500);
+	            
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+     		
+            
+             
+         }
+    	
     }
 
     @Override

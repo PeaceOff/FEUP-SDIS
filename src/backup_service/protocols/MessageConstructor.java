@@ -21,7 +21,7 @@ public class MessageConstructor {
 		commandArgs.put("GETCHUNK", 4);
 		commandArgs.put("CHUNK", 4);
 		commandArgs.put("DELETE", 3);
-		commandArgs.put("REMOVE", 4);
+		commandArgs.put("REMOVED", 4);
 	}
 	
 	public static int getArgumentNumber(String name){

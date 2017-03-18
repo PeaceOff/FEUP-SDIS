@@ -8,6 +8,8 @@ import backup_service.distributor.IDistribute;
 import backup_service.distributor.IMessageListener;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.HeaderInfo;
+import file_managment.FileManager;
+import utils.Debug;
 
 public class RemoveChunk implements IDistribute, IMessageListener {
 	
@@ -15,16 +17,17 @@ public class RemoveChunk implements IDistribute, IMessageListener {
 	
 	private ChannelManager channelManager;
 	private Services services;
-	
 	private HeaderInfo header;
+	private FileManager fileManager;
 	
 	private boolean proved = false;
 	private boolean record = false;
 	
-	public RemoveChunk(ChannelManager channelManager){
+	public RemoveChunk(ChannelManager channelManager, FileManager fileManager){
 		this.channelManager = channelManager;
 		this.channelManager.getMDB().getDistributor().addListener("PUTCHUNK", this);
 		this.services = new Services(channelManager);
+		this.fileManager=fileManager;
 	}
 	
 	private boolean waitForResend(HeaderInfo info){
@@ -65,6 +68,12 @@ public class RemoveChunk implements IDistribute, IMessageListener {
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
+		Debug.log("REMOVECHUNK","Init" + header);
+		
+		
+		if(!fileManager.peer_deleted_chunk(header.fileID, header.chunkNo, header.senderID)){
+			return true;
+		}
 		
 		/* REMOVED <Version> <SenderId> <FileId> <ChunkNo> <CRLF><CRLF>
 		 * 
@@ -79,8 +88,12 @@ public class RemoveChunk implements IDistribute, IMessageListener {
 		
 		
 		if(waitForResend(header)){
+			Debug.log(1,"REMOVECHUNK","COULD NOT SEND!");
+			
 			return true;
 		}
+		Debug.log(1,"REMOVECHUNK","SENDING!");
+		
 		//GET replication deg and DATA!
 		int replication_degree = 3;
 		byte[] fileData = new byte[]{1,2,3};

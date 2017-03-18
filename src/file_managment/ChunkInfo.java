@@ -3,6 +3,8 @@ package file_managment;
 import java.io.Serializable;
 import java.util.HashSet;
 
+import utils.Debug;
+
 public class ChunkInfo implements Serializable{
 
     private int rep_degree;
@@ -37,10 +39,15 @@ public class ChunkInfo implements Serializable{
         return this.peers.size();
     }
 
-    public void remove_peer(int peer){
+    public boolean remove_peer(int peer){
 
-        if(peers.contains(peer))
+        if(peers.contains(peer)){
             peers.remove(peer);
+            Debug.log("REPDEG",rep_degree + "-" + peers.size());
+            return rep_degree > peers.size();
+        }
+        Debug.log("NO PEER D:");
+        return false;
 
     }
 

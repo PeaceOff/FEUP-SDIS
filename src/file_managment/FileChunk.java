@@ -12,8 +12,15 @@ public class FileChunk {
     public void setN_chunk(int n_chunk) {
         this.n_chunk = n_chunk;
     }
-
+    
+    public void setFile_id(String file_id) {
+    	_file_id = file_id;	
+    }
+    
     public void setFile_id(byte[] file_id) {
+    	if(file_id == null)
+    		return; 
+    	 
     	this._file_id = "";
         this.file_id = file_id;
         
