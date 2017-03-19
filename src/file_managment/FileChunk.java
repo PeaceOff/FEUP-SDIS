@@ -4,6 +4,7 @@ package file_managment;
 public class FileChunk {
     private byte[] chunk_data;
     private int n_chunk;
+    private String _file_id;
 
     public void setChunk_data(byte[] chunk_data) {
         this.chunk_data = chunk_data;
@@ -22,20 +23,15 @@ public class FileChunk {
     		return; 
     	 
     	this._file_id = "";
-        this.file_id = file_id;
         
         for(int i = 0; i < file_id.length; i++)
         	this._file_id += String.format("%02X", file_id[i]);
 		
     }
 
-    private byte[] file_id;
-    private String _file_id;
-
-    public FileChunk(byte[] data, int n_chunk, byte[] file_id) {
+    public FileChunk(byte[] data, int n_chunk) {
         this.chunk_data = data;
         this.n_chunk = n_chunk;
-        this.file_id = file_id;
     }
 
     public FileChunk(int n_chunk, byte[] file_id) {

@@ -21,24 +21,57 @@ public class FileManager {
     private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
     
     private ChunkManager chunkManager = new ChunkManager();
-    
-    public static void main(String[] args){
-        Debug.log("BOAS");
-    }
 
     public FileManager(String folderName) throws IOException, NoSuchAlgorithmException {
     	
         this.main_path = System.getProperty("java.class.path") + File.separator + folderName;
         this.mapper = new Mapper(this.main_path);
         Path path = Paths.get(this.main_path);
-        //TODO verificar primeiro se o directory ja existe?
-        try {
+
+        if(Files.exists(path)){//Ja existe vamos ler o my_files
+            load_my_files();
+            return;
+        }
+
+        try {//Senao vamos entao criar o directorio
             Files.createDirectory(path);
         } catch (FileAlreadyExistsException e) {
             System.out.println("Directory already exists!");
         }
     }
-    
+
+    public void save_my_files(){
+        
+        String path = main_path + File.separator + "my_files";
+
+        mapper.write_slave(path,my_files);
+
+    }
+
+    public void load_my_files(){
+
+        String path_to_file = main_path + File.separator + "my_files";
+        Path path = Paths.get(path_to_file);
+
+        if(!Files.exists(path))
+            return;
+
+        try
+        {
+            FileInputStream fis = new FileInputStream(path.toFile());
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            my_files = (ArrayList<Metadata>)ois.readObject();
+            ois.close();
+            fis.close();
+        }catch(IOException e)
+        {
+            Debug.log("ERROR"," Failed to open my_files file");
+        } catch (ClassNotFoundException e) {
+            Debug.log("ERROR"," Class not found at reading ArrayList");
+        }
+
+    }
+
     public FileOutputStream createFile(String fileName) throws IOException{
     	String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
     	

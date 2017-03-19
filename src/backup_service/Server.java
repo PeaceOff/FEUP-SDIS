@@ -121,6 +121,9 @@ public class Server implements IBackup{
 				}
 				chunkNo++;
 			}
+
+			//Quando faz backup de um ficheiro guardar a info do my_files
+			fileManager.save_my_files();
 			
 		} catch (IOException e) {
 			//RETURN MESSAGE TO THE CLIENT TELLING SOMETHING IS WRONG!

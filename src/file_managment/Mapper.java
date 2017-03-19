@@ -140,14 +140,14 @@ public class Mapper {
 
     }
 
-    private void write_slave(String path, HashMap<Integer,ChunkInfo> hmap) {
+    public void write_slave(String path, Serializable obj) {
 
         try {
 
             FileOutputStream fos = new FileOutputStream(Paths.get(path).toFile());
             fos.write(("").getBytes());
             ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(hmap);
+            oos.writeObject(obj);
             oos.close();
             fos.close();
 
@@ -188,32 +188,26 @@ public class Mapper {
         FileChunk res = new FileChunk(0,null);
         int maior = Integer.MIN_VALUE;
         
-        int n = 0;
-        
-        
         for (HashMap.Entry<String,HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
-        	
-        	
+
             String file_id = entry.getKey();
             HashMap<Integer, ChunkInfo> hmap = entry.getValue();
 
             for(Map.Entry<Integer, ChunkInfo> entry1 : hmap.entrySet()) {
 
                 int chunk_n = entry1.getKey();
-                ChunkInfo peers = entry1.getValue();
-                int dif = peers.getRep_degree() - peers.get_peer_count();
-                
-                if(n == 0){
-                	n++;
-                	res.setFile_id(file_id);
-                    res.setN_chunk(chunk_n);
-                }
-                
-                if(dif >= maior){
 
-                    maior = dif;
-                    res.setFile_id(file_id.getBytes());
-                    res.setN_chunk(chunk_n);
+                if(exists(file_id,chunk_n)) {//Apenas se existir, já pesquisa no disco!
+
+                    ChunkInfo peers = entry1.getValue();
+                    int dif = peers.getRep_degree() - peers.get_peer_count();
+
+                    if (dif >= maior) {
+
+                        maior = dif;
+                        res.setFile_id(file_id.getBytes());
+                        res.setN_chunk(chunk_n);
+                    }
                 }
             }
         }
