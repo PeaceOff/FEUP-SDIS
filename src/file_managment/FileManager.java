@@ -41,7 +41,7 @@ public class FileManager {
     }
 
     public void save_my_files(){
-        
+
         String path = main_path + File.separator + "my_files";
 
         mapper.write_slave(path,my_files);
