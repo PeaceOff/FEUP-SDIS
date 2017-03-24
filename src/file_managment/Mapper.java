@@ -179,8 +179,31 @@ public class Mapper {
 
     }
 
-    private void write_data_file(String file_id){
+    public void write_slave(String p, Serializable obj,int disk_size) {
 
+        Path path = Paths.get(p);
+
+        try {
+
+            if(!Files.exists(path))
+                Files.createFile(path);
+            FileOutputStream fos = new FileOutputStream(path.toFile());
+            fos.write(("").getBytes());
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(obj);
+            oos.writeInt(disk_size);
+            oos.close();
+            fos.close();
+
+        }catch(IOException e)
+        {
+            Debug.log("WRITE_SLAVE"," Could not write file data");
+            //e.printStackTrace();
+        }
+
+    }
+
+    private void write_data_file(String file_id){
 
         String path = this.main_path + File.separator + file_id + File.separator + "data";
 
@@ -262,5 +285,31 @@ public class Mapper {
         Debug.log("DONT EXIST!");
  
         return false;
+    }
+
+    @Override
+    public String toString() {
+
+        String res = "!!Storage information!!\n";
+
+        for (HashMap.Entry<String,HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
+
+            String file_id = entry.getKey();
+            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
+
+            res += "File ID : " + file_id + '\n';
+
+            for(Map.Entry<Integer, ChunkInfo> entry1 : hmap.entrySet()) {
+
+                int chunk_n = entry1.getKey();
+                ChunkInfo peers = entry1.getValue();
+                String tmp = this.main_path + File.separator + file_id + File.separator + chunk_n;
+                int size = (int)(Paths.get(tmp).toFile().length()/1000);
+                res += "\tChunk Number : " + chunk_n + " | Size (KB) : " + size + " | Perceived Rep Degree : " + peers.get_peer_count() + '\n';
+
+            }
+        }
+
+        return res;
     }
 }

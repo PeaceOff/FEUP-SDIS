@@ -41,7 +41,7 @@ public class Server implements IBackup{
     	distributors[2] = new Distributor();
     	
     	channelManager = new ChannelManager(args, distributors);
-    	services = new Services(channelManager);
+    	services = new Services(channelManager,fileManager);
 ;    	
     	distributors[0].addDistributor("STORED", new Stored(fileManager));
     	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
@@ -101,7 +101,7 @@ public class Server implements IBackup{
     public void backup(String file_path, int rep_degree) {
     	Debug.log("BACKUP PATH:", file_path);
     	try {
-			FileStreamInformation fs = fileManager.get_chunks_from_file(file_path);
+			FileStreamInformation fs = fileManager.get_chunks_from_file(file_path,rep_degree);
 			byte[] chunkData = new byte[FileManager.chunk_size_bytes];
 			
 			int chunkNo = 0;
@@ -226,7 +226,27 @@ public class Server implements IBackup{
 
     @Override
     public String state() {
-        return null;
+		/*Retrieve local service state information
+		This operation allows to observe the service state. In response to such a request,
+		the peer shall send to the client the following information:
+
+			For each file whose backup it has initiated:
+				The file pathname
+				The backup service id of the file
+				The desired replication degree
+				For each chunk of the file:
+					Its id
+					Its perceived replication degree
+
+			For each chunk it stores:
+				Its id
+				Its size (in KBytes)
+				Its perceived replication degree
+
+			The peer's storage capacity, i.e. the maximum amount of disk space that can be
+			used to store chunks, and the amount of storage (both in KBytes) used to backup the chunks.
+*/
+		return fileManager.toString();
     }
     
     public static void main(String args[]){

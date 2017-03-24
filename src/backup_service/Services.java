@@ -1,5 +1,6 @@
 package backup_service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 
@@ -8,6 +9,7 @@ import backup_service.distributor.IMessageListener;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.HeaderInfo;
 import backup_service.protocols.MessageConstructor;
+import file_managment.FileManager;
 import utils.Debug;
 
 public class Services implements IMessageListener {
@@ -22,11 +24,13 @@ public class Services implements IMessageListener {
 	private boolean record = false;
 	private String fileID;
 	private HashSet<Integer> confirmations = new HashSet<>();
+	private FileManager fileManager;
 	
-	public Services (ChannelManager chnl){
+	public Services (ChannelManager chnl, FileManager fM){
 		channelManager = chnl;
 		chnl.getMC().getDistributor().addListener("STORED", this);
 		id = counter++;
+		fileManager = fM;
 	}
 	
 	public int getId() {
@@ -70,6 +74,7 @@ public class Services implements IMessageListener {
 			
 			if(getReceptions() >= degree){
 				Debug.log("SERVICES_SENDPUTCHUNK","Finished BACKUP! Receptions:" +getReceptions());
+				fileManager.add_chunk_rep(fileID,chunkNo,getReceptions());
 				record = false;
 				return;
 			}

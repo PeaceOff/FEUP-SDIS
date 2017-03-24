@@ -26,7 +26,7 @@ public class RemoveChunk implements IDistribute, IMessageListener {
 	public RemoveChunk(ChannelManager channelManager, FileManager fileManager){
 		this.channelManager = channelManager;
 		this.channelManager.getMDB().getDistributor().addListener("PUTCHUNK", this);
-		this.services = new Services(channelManager);
+		this.services = new Services(channelManager,fileManager);
 		this.fileManager=fileManager;
 	}
 	

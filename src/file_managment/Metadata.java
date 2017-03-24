@@ -7,6 +7,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Iterator;
 
 public class Metadata implements Serializable {
 
@@ -14,15 +16,22 @@ public class Metadata implements Serializable {
     private String creation_time;
     private String last_modification;
     private long size;
+    private int rep_degree;
     public String fileID;
+    public HashMap<Integer,Integer> chunks_n_reps = new HashMap<Integer,Integer>();
 
-    public Metadata(String file_name,BasicFileAttributes metadata)  {
+    public Metadata(String file_name,BasicFileAttributes metadata,int rd)  {
 
         this.file_name = file_name;
         this.creation_time = metadata.creationTime().toString();
         this.last_modification = metadata.lastModifiedTime().toString();
         this.size = metadata.size();
         this.fileID = this.get_file_id();
+        this.rep_degree = rd;
+    }
+
+    public void append_reps(int chunk_no,int reps){
+        chunks_n_reps.put(chunk_no,reps);
     }
 
     private String get_file_id() {
@@ -80,5 +89,19 @@ public class Metadata implements Serializable {
 
     public void setSize(long size) {
         this.size = size;
+    }
+
+    @Override
+    public String toString() {
+        String res = "";
+        res += "Backup Service id : " + fileID + '\n' + "Desired Rep Degree : " + rep_degree + '\n';
+
+        Iterator it = chunks_n_reps.entrySet().iterator();
+        while (it.hasNext()) {
+            HashMap.Entry pair = (HashMap.Entry)it.next();
+            res += "\tChunk Number : " + pair.getKey() + " | Perceived Rep Degree : " + pair.getValue() + '\n';
+            it.remove();
+        }
+        return res;
     }
 }

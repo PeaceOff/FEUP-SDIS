@@ -41,6 +41,15 @@ public class FileManager {
         }
     }
 
+    public void add_chunk_rep(String fileID,int chunk_no, int rep){
+
+        for(int i = 0; i < my_files.size(); i++){
+            if(my_files.get(i).fileID.equals(fileID))
+                my_files.get(i).append_reps(chunk_no,rep);
+        }
+
+    }
+
     private void load_information(Path path){
 
         load_my_files();//Vamos ler os ficheiros que fizemos backup como initiator-peer
@@ -52,7 +61,7 @@ public class FileManager {
 
         String path = main_path + File.separator + "my_files";
 
-        mapper.write_slave(path,my_files);
+        mapper.write_slave(path,my_files,disk_size);
 
     }
 
@@ -69,6 +78,7 @@ public class FileManager {
             FileInputStream fis = new FileInputStream(path.toFile());
             ObjectInputStream ois = new ObjectInputStream(fis);
             my_files = (ArrayList<Metadata>)ois.readObject();
+            disk_size = (Integer)ois.readInt();
             ois.close();
             fis.close();
         }catch(IOException e)
@@ -98,14 +108,14 @@ public class FileManager {
     	}
     }
     
-    public FileStreamInformation get_chunks_from_file(String path) throws IOException {
+    public FileStreamInformation get_chunks_from_file(String path,int rep_degree) throws IOException {
     	
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
         
         int len = (int)file.toFile().length();
-        Metadata file_data = new Metadata(file.toFile().getName(),metadata);
+        Metadata file_data = new Metadata(file.toFile().getName(),metadata,rep_degree);
         this.my_files.add(file_data);
 
         return new FileStreamInformation(file_data.fileID, reader);
@@ -278,6 +288,24 @@ public class FileManager {
 		// TODO Auto-generated method stub
 		return mapper;
 	}
-    
-    
+
+    @Override
+    public String toString() {
+
+        String res = "My Files : \n";
+
+        for (Metadata m : my_files) {
+            res += '\t' + m.toString() + '\n';
+        }
+
+        res += "---------------------------------------------------------------\n";
+
+        res += mapper.toString();
+
+        res += "---------------------------------------------------------------\n";
+
+        res += "Storage Capacity : " + this.disk_size + " | Occupied : " + getFolderSize(Paths.get(this.main_path).toFile()) + '\n';
+
+        return res;
+    }
 }

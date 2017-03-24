@@ -57,7 +57,7 @@ public class Client {
                 break;
             case "STATE":
                 String res = peer.state();
-                System.out.println("Local Service State Info\n" + res);
+                System.out.println("Local Service State Info:\n" + res);
                 break;
             default:
                 break;
