@@ -46,7 +46,10 @@ public class Restore implements IDistribute, IMessageListener{
 		header = new HeaderInfo(line);
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
-		
+
+		if(fileManager.is_my_file(header.fileID))
+			return true;
+
 		Debug.log(1,"GETCHUNK", header.toString());
 		
 		byte[] chunkData = fileManager.get_file_chunk(header.fileID, header.chunkNo);

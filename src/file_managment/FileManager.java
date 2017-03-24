@@ -29,7 +29,8 @@ public class FileManager {
         Path path = Paths.get(this.main_path);
 
         if(Files.exists(path)){//Ja existe vamos ler o my_files
-            load_my_files();
+            //Se ja existir significa que o server foi abaixo e voltou
+            load_information(path);
             return;
         }
 
@@ -38,6 +39,13 @@ public class FileManager {
         } catch (FileAlreadyExistsException e) {
             System.out.println("Directory already exists!");
         }
+    }
+
+    private void load_information(Path path){
+
+        load_my_files();//Vamos ler os ficheiros que fizemos backup como initiator-peer
+        mapper.load_my_data_files(path);//E vamos preencher a informação dos chunks que temos guardados em disco
+
     }
 
     public void save_my_files(){
@@ -103,7 +111,7 @@ public class FileManager {
         return new FileStreamInformation(file_data.fileID, reader);
     }
 
-    private boolean is_my_file(String fileID){
+    public boolean is_my_file(String fileID){
 
         for(int i = 0; i < my_files.size(); i++){
 
@@ -204,11 +212,16 @@ public class FileManager {
 
         //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
+        String file_path = this.main_path + File.separator + fileID;
 
         Path file = Paths.get(path);
         try {
             Files.deleteIfExists(file);
             mapper.chunk_removed(fileID,chunk_num);
+
+            if(Paths.get(file_path).toFile().listFiles().length <= 1){
+                recursiveDelete(Paths.get(file_path).toFile());
+            }
             return true;
         } catch (IOException e) {
             Debug.log("DELETE_FILE_CHUNK", "Could not delete file at " + fileID + ":" + chunk_num);
@@ -218,6 +231,9 @@ public class FileManager {
     }
 
     public boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID){
+
+        if(is_my_file(fileID))
+            return true;
 
         return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
 

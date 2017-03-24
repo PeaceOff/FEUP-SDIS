@@ -62,7 +62,7 @@ public class Mapper {
 
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
         String folder = this.main_path + File.separator + fileID + File.separator + "data";
-        Debug.log(path); 
+
         if(Files.exists(Paths.get(path))){
         	Debug.log("POTATO");
             HashMap<Integer,ChunkInfo> hmap = read_from_data_file(Paths.get(folder));
@@ -112,9 +112,24 @@ public class Mapper {
         return hmap;
     }
 
+    public void load_my_data_files(Path path){
+
+        File f = path.toFile();
+        File[] files = f.listFiles();
+        for (File file : files) {
+            if(file.isDirectory()) {
+                String path_to_file = file.getPath() + File.separator + "data";
+                HashMap<Integer, ChunkInfo> hmap = read_from_data_file(Paths.get(path_to_file));
+                mapper.put(file.getName(), hmap);
+            }
+        }
+
+    }
+
     private HashMap<Integer, ChunkInfo> read_from_data_file(Path path) {
 
         HashMap<Integer, ChunkInfo> res = null;
+
         try
         {
             FileInputStream fis = new FileInputStream(path.toFile());
@@ -125,6 +140,7 @@ public class Mapper {
         }catch(IOException e)
         {
             Debug.log("READ_FROM_DATA_FILE"," Failed to open file");
+            Debug.log(path.toString());
         } catch (ClassNotFoundException e) {
             Debug.log("READ_FROM_DATA_FILE"," Class not found at reading HashMap");
         }
@@ -202,17 +218,14 @@ public class Mapper {
 
                 int chunk_n = entry1.getKey();
 
-                if(exists(file_id,chunk_n)) {//Apenas se existir, já pesquisa no disco!
+                ChunkInfo peers = entry1.getValue();
+                int dif = peers.getRep_degree() - peers.get_peer_count();
 
-                    ChunkInfo peers = entry1.getValue();
-                    int dif = peers.getRep_degree() - peers.get_peer_count();
+                if (dif >= maior) {
 
-                    if (dif >= maior) {
-
-                        maior = dif;
-                        res.setFile_id(file_id.getBytes());
-                        res.setN_chunk(chunk_n);
-                    }
+                    maior = dif;
+                    res.setFile_id(file_id);
+                    res.setN_chunk(chunk_n);
                 }
             }
         }
