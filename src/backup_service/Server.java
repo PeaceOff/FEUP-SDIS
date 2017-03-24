@@ -10,7 +10,6 @@ import backup_service.distributor.Distributor;
 import backup_service.distributor.IDistribute;
 import backup_service.distributor.services.*;
 import backup_service.protocols.*;
-import file_managment.ChunkManager;
 import file_managment.FileChunk;
 import file_managment.FileManager;
 import file_managment.FilePartitioned;

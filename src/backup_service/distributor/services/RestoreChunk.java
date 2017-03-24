@@ -3,7 +3,6 @@ package backup_service.distributor.services;
 import backup_service.distributor.IDistribute;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.HeaderInfo;
-import file_managment.ChunkManager;
 import file_managment.FileManager;
 import utils.Debug;
 
