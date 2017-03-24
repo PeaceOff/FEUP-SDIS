@@ -65,9 +65,9 @@ public class FileManager {
             fis.close();
         }catch(IOException e)
         {
-            Debug.log("ERROR"," Failed to open my_files file");
+            Debug.log("LOAD_MY_FILES"," Failed to open my_files file");
         } catch (ClassNotFoundException e) {
-            Debug.log("ERROR"," Class not found at reading ArrayList");
+            Debug.log("LOAD_MY_FILES"," Class not found at reading ArrayList");
         }
 
     }
@@ -169,7 +169,7 @@ public class FileManager {
             reader.close();
 
         } catch (IOException e) {
-            Debug.log("ERROR","Couldn't open/read chunk at " + fileID + ":" + chunk_num);
+            Debug.log("GET_FILE_CHUNK","Couldn't open/read chunk at " + fileID + ":" + chunk_num);
         }
        
         //TODO enviar mesagem CHUNK
@@ -211,7 +211,7 @@ public class FileManager {
             mapper.chunk_removed(fileID,chunk_num);
             return true;
         } catch (IOException e) {
-            Debug.log("ERROR", "Could not delete file at " + fileID + ":" + chunk_num);
+            Debug.log("DELETE_FILE_CHUNK", "Could not delete file at " + fileID + ":" + chunk_num);
         }
 
         return false;
@@ -221,12 +221,6 @@ public class FileManager {
 
         return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
 
-    }
-
-    private void new_disk_size(){//Limpar o disco até atingir o nome espaço desejado
-
-        File directory = Paths.get(this.main_path).toFile();
-       
     }
     
     public static long getFolderSize(File folder) {

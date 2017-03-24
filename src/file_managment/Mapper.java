@@ -124,9 +124,9 @@ public class Mapper {
             fis.close();
         }catch(IOException e)
         {
-            Debug.log("ERROR"," Failed to open file");
+            Debug.log("READ_FROM_DATA_FILE"," Failed to open file");
         } catch (ClassNotFoundException e) {
-            Debug.log("ERROR"," Class not found at reading HashMap");
+            Debug.log("READ_FROM_DATA_FILE"," Class not found at reading HashMap");
         }
         return res;
     }
@@ -140,11 +140,15 @@ public class Mapper {
 
     }
 
-    public void write_slave(String path, Serializable obj) {
+    public void write_slave(String p, Serializable obj) {
+
+        Path path = Paths.get(p);
 
         try {
 
-            FileOutputStream fos = new FileOutputStream(Paths.get(path).toFile());
+            if(!Files.exists(path))
+                Files.createFile(path);
+            FileOutputStream fos = new FileOutputStream(path.toFile());
             fos.write(("").getBytes());
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(obj);
@@ -153,7 +157,8 @@ public class Mapper {
 
         }catch(IOException e)
         {
-            Debug.log("ERROR"," Could not write file data");
+            Debug.log("WRITE_SLAVE"," Could not write file data");
+            //e.printStackTrace();
         }
 
     }

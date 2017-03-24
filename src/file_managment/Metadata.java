@@ -14,7 +14,6 @@ public class Metadata implements Serializable {
     private String creation_time;
     private String last_modification;
     private long size;
-    private MessageDigest hasher;
     public String fileID;
 
     public Metadata(String file_name,BasicFileAttributes metadata)  {
@@ -23,21 +22,23 @@ public class Metadata implements Serializable {
         this.creation_time = metadata.creationTime().toString();
         this.last_modification = metadata.lastModifiedTime().toString();
         this.size = metadata.size();
-        try {
-            this.hasher = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            Debug.log("ERROR","ALgorithm does not exist!");
-        }
         this.fileID = this.get_file_id();
     }
 
     private String get_file_id() {
 
         String identifier = file_name + creation_time + last_modification + size;
+        MessageDigest hasher = null;
         try {
-            this.hasher.update(identifier.getBytes("ASCII"));
+            hasher = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            Debug.log("METADATA","ALgorithm does not exist!");
+            System.exit(-1);
+        }
+        try {
+            hasher.update(identifier.getBytes("ASCII"));
         } catch (UnsupportedEncodingException e) {
-            Debug.log("ERROR","Could not find hasher identifier ASCII");
+            Debug.log("GET_FILE_ID","Could not find hasher identifier ASCII");
         }
 
         byte[] fileID = hasher.digest();
@@ -79,13 +80,5 @@ public class Metadata implements Serializable {
 
     public void setSize(long size) {
         this.size = size;
-    }
-
-    public MessageDigest getHasher() {
-        return hasher;
-    }
-
-    public void setHasher(MessageDigest hasher) {
-        this.hasher = hasher;
     }
 }

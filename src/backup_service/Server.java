@@ -81,6 +81,7 @@ public class Server implements IBackup{
 		}
     	
     	Subprotocol mdb = channelManager.getMDB();
+    	/*
     	try {
     		if(channelManager.getServerID() == 1)
     			services.sendPutChunk("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 255, 3, new byte[]{1,2,3});
@@ -93,6 +94,7 @@ public class Server implements IBackup{
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		*/
     	
     }
 	
