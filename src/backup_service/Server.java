@@ -171,32 +171,29 @@ public class Server implements IBackup{
 				byte[] chunk = filePart.getChunk(chunkCounter);
 				if(chunk != null){
 					chunkCounter++;
-					fs.write(chunk);
+					fs.write(chunk);//Escrita da chunk no ficheiro
 					if(filePart.totalChunks() > -1)
 						if(chunkCounter > filePart.totalChunks())
 							break;
 				}else{
+					fs.close();
+					fileManager.delete_restored_file(file_id);
 					Debug.log("Error Receiving CHUNK Retrying!");
 				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) {
+				Debug.log("SERVER","RESTORE");
 				e.printStackTrace();
 			}
     	}
     	try {
 			fs.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			Debug.log("SERVER","RESTORE");
 			e.printStackTrace();
 		}
     	fileManager.getChunkManager().StopListen(file_id);
     	
     }
-
-    
     
     @Override
     public void reclaim(int space) {
@@ -214,18 +211,11 @@ public class Server implements IBackup{
 				this.channelManager.getMC().sendMessage(MessageConstructor.getREMOVED(delete.getFile_id(), delete.getN_chunk()));
 				Thread.sleep(500);
 	            
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
+			} catch (Exception e) {
+				Debug.log("SERVER","reclaim");
 				e.printStackTrace();
 			}
-     		
-            
-             
          }
-    	
     }
 
     @Override
