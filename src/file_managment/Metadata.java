@@ -2,8 +2,10 @@ package file_managment;
 
 import utils.Debug;
 
-import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,12 +22,12 @@ public class Metadata implements Serializable {
     public String fileID;
     public HashMap<Integer,Integer> chunks_n_reps = new HashMap<Integer,Integer>();
 
-    public Metadata(String file_name,BasicFileAttributes metadata,int rd)  {
+    public Metadata(String file_name,BasicFileAttributes metadata,int rd, long len)  {
 
         this.file_name = file_name;
         this.creation_time = metadata.creationTime().toString();
         this.last_modification = metadata.lastModifiedTime().toString();
-        this.size = metadata.size();
+        this.size = len;
         this.fileID = this.get_file_id();
         this.rep_degree = rd;
     }
@@ -61,6 +63,20 @@ public class Metadata implements Serializable {
 
     public String getFile_name() {
         return file_name;
+    }
+
+    public static String get_file_id(Path file) {
+
+        BasicFileAttributes metadata = null;
+        try {
+            metadata = Files.readAttributes(file, BasicFileAttributes.class);
+        } catch (IOException e) {
+            Debug.log("METADATA","GET_FILE_ID");
+        }
+
+        long len = file.toFile().length();
+        Metadata temp = new Metadata(file.toFile().getName(),metadata,0,len);
+        return temp.get_file_id();
     }
 
     public void setFile_name(String file_name) {

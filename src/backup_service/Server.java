@@ -136,8 +136,12 @@ public class Server implements IBackup{
     }
 
     @Override
-    public void delete(String file_id) {
+    public void delete(String path) {
     	try {
+
+			String file_id = fileManager.delete_my_file(path);
+			if(file_id == null)//Não é um ficheiro meu!
+				return;
 			channelManager.getMC().sendMessage(MessageConstructor.getDELETE(file_id));
 		} catch (IOException e) {
 		}

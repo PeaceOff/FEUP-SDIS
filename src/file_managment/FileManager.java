@@ -113,10 +113,11 @@ public class FileManager {
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
-        
-        int len = (int)file.toFile().length();
-        Metadata file_data = new Metadata(file.toFile().getName(),metadata,rep_degree);
+
+        long len = file.toFile().length();
+        Metadata file_data = new Metadata(file.toFile().getName(),metadata,rep_degree,len);
         this.my_files.add(file_data);
+        save_my_files();
 
         return new FileStreamInformation(file_data.fileID, reader);
     }
@@ -305,6 +306,27 @@ public class FileManager {
         res += "---------------------------------------------------------------\n";
 
         res += "Storage Capacity : " + this.disk_size + " | Occupied : " + getFolderSize(Paths.get(this.main_path).toFile()) + '\n';
+
+        return res;
+    }
+
+    public String delete_my_file(String path_to_file) {
+
+        Path file = Paths.get(path_to_file);
+        String name = file.toFile().getName();
+        String res  = "";
+
+        if(!is_my_file(Metadata.get_file_id(file))){
+            return null;
+        }
+
+        for(int i = 0; i < my_files.size(); i++)
+            if(my_files.get(i).getFile_name().equals(name)) {
+                res = my_files.get(i).fileID;
+                my_files.remove(i);
+                save_my_files();
+                break;
+            }
 
         return res;
     }
