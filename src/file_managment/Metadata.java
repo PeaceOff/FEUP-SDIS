@@ -81,32 +81,8 @@ public class Metadata implements Serializable {
         return null;
     }
 
-    public void setFile_path(String file_path) {
-        this.file_path = file_path;
-    }
-
-    public String getCreation_time() {
-        return creation_time;
-    }
-
-    public void setCreation_time(String creation_time) {
-        this.creation_time = creation_time;
-    }
-
-    public String getLast_modification() {
-        return last_modification;
-    }
-
-    public void setLast_modification(String last_modification) {
-        this.last_modification = last_modification;
-    }
-
-    public long getSize() {
-        return size;
-    }
-
-    public void setSize(long size) {
-        this.size = size;
+    public int get_chunk_number(){
+        return (int)Math.ceil(this.size / FileManager.chunk_size_bytes);
     }
 
     @Override
