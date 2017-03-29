@@ -121,7 +121,7 @@ public class FileManager {
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
 
         long len = file.toFile().length();
-        Metadata file_data = new Metadata(file.toFile().getName(),metadata,rep_degree,len);
+        Metadata file_data = new Metadata(file.toFile().getCanonicalPath(),metadata,rep_degree,len);
         this.my_files.add(file_data);
         save_my_files();
 
@@ -327,7 +327,7 @@ public class FileManager {
         }
 
         for(int i = 0; i < my_files.size(); i++)
-            if(my_files.get(i).getFile_name().equals(name)) {
+            if(my_files.get(i).getFile_path().equals(name)) {
                 res = my_files.get(i).fileID;
                 my_files.remove(i);
                 save_my_files();
