@@ -90,21 +90,21 @@ public class FileManager {
 
     }
 
-    public FileOutputStream createFile(String fileName) throws IOException{
-    	String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
+    public FileOutputStream createFile(String file_path) throws IOException{
+
+        //String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
     	
-    	createDirectory(directory);
+    	//createDirectory(directory);
     	
-    	File file = new File(directory + File.separator + fileName);
+    	File file = new File(file_path);
     	
     	FileOutputStream of = new FileOutputStream(file);
     	return of;
     }
 
-    public void delete_restored_file(String file_id) throws IOException {
+    public void delete_restored_file(String file_path) throws IOException {
 
-        String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED" + File.separator + file_id;
-        Files.deleteIfExists(Paths.get(directory));
+        Files.deleteIfExists(Paths.get(file_path));
     }
 
     public void createDirectory(String directory) throws IOException{

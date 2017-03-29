@@ -40,10 +40,6 @@ public class FileChunk {
         setFile_id(file_id);
     }
 
-    public byte[] getChunk_data() {
-        return chunk_data;
-    }
-
     public int getN_chunk() {
         return n_chunk;
     }
