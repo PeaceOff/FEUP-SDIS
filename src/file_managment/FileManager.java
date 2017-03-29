@@ -13,7 +13,7 @@ import java.util.*;
 
 public class FileManager {
 	
-    private int disk_size = 1280000;//KB
+    private int disk_size = 1280000;//Bytes
     public static final int chunk_size_bytes = 64000;
     private String main_path;
     private Mapper mapper;
@@ -95,7 +95,8 @@ public class FileManager {
         //String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
     	
     	//createDirectory(directory);
-    	
+    	Files.deleteIfExists(Paths.get(file_path));//apagar o existente para escrever o novo
+
     	File file = new File(file_path);
     	
     	FileOutputStream of = new FileOutputStream(file);

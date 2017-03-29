@@ -123,13 +123,12 @@ public class Server implements IBackup{
 
 			//Quando faz backup de um ficheiro guardar a info do my_files
 			fileManager.save_my_files();
+			fs.getStream().close();
 			
 		} catch (IOException e) {
 			//RETURN MESSAGE TO THE CLIENT TELLING SOMETHING IS WRONG!
 			e.printStackTrace();
 		}
-    	
-    	
     	
     }
 
@@ -177,7 +176,7 @@ public class Server implements IBackup{
 				}else{
 					fs.close();
 					fileManager.delete_restored_file(file_path);
-					Debug.log("Error Receiving CHUNK Retrying!");
+					Debug.log("Error Receiving CHUNK Retrieving!");
 				}
 			} catch (Exception e) {
 				Debug.log("SERVER","RESTORE");
