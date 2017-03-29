@@ -1,6 +1,7 @@
 package backup_service;
 
 import java.nio.file.Paths;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -242,14 +243,14 @@ public class Server implements IBackup{
     }
     
     public static void main(String args[]){
-        
-        String remote_object_name = args[5];
+
+		String remote_object_name = args[5];
         Server sv;
         try {
         	sv = new Server(args);
             IBackup peer = (IBackup) UnicastRemoteObject.exportObject(sv,0);
-            Registry registry = LocateRegistry.getRegistry();
-            registry.bind(remote_object_name,peer);
+            Registry registry = LocateRegistry.createRegistry(0);
+            registry.rebind(remote_object_name,peer);
             System.out.println("RMI ready!");
             sv.test();
         } catch(IOException e){
