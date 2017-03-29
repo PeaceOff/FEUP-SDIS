@@ -1,5 +1,6 @@
 package backup_service;
 
+import java.nio.file.Paths;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -10,10 +11,7 @@ import backup_service.distributor.Distributor;
 import backup_service.distributor.IDistribute;
 import backup_service.distributor.services.*;
 import backup_service.protocols.*;
-import file_managment.FileChunk;
-import file_managment.FileManager;
-import file_managment.FilePartitioned;
-import file_managment.FileStreamInformation;
+import file_managment.*;
 import utils.Debug;
 
 import java.io.File;
@@ -125,13 +123,12 @@ public class Server implements IBackup{
 
 			//Quando faz backup de um ficheiro guardar a info do my_files
 			fileManager.save_my_files();
+			fs.getStream().close();
 			
 		} catch (IOException e) {
 			//RETURN MESSAGE TO THE CLIENT TELLING SOMETHING IS WRONG!
 			e.printStackTrace();
 		}
-    	
-    	
     	
     }
 
@@ -148,11 +145,12 @@ public class Server implements IBackup{
     }
 
     @Override
-    public void restore(String file_id) {
+    public void restore(String file_path) {
     	FileOutputStream fs;
-    	
-    	try {
-			fs = fileManager.createFile(file_id);
+    	String file_id = Metadata.get_file_id(Paths.get(file_path));
+
+		try {
+			fs = fileManager.createFile(file_path);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 			return;
@@ -177,8 +175,8 @@ public class Server implements IBackup{
 							break;
 				}else{
 					fs.close();
-					fileManager.delete_restored_file(file_id);
-					Debug.log("Error Receiving CHUNK Retrying!");
+					fileManager.delete_restored_file(file_path);
+					Debug.log("Error Receiving CHUNK Retrieving!");
 				}
 			} catch (Exception e) {
 				Debug.log("SERVER","RESTORE");

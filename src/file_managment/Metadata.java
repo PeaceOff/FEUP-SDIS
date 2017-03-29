@@ -80,7 +80,7 @@ public class Metadata implements Serializable {
 
         return null;
     }
-
+    
     public int get_chunk_number(){
         return (int)Math.ceil(this.size / FileManager.chunk_size_bytes);
     }
