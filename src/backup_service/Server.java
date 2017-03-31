@@ -1,5 +1,6 @@
 package backup_service;
 
+import java.io.Serializable;
 import java.nio.file.Paths;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -21,7 +22,7 @@ import java.io.IOException;
 
 
 
-public class Server implements IBackup{
+public class Server implements IBackup {
 	
     private int id;
     
@@ -148,7 +149,11 @@ public class Server implements IBackup{
     @Override
     public void restore(String file_path) {
     	FileOutputStream fs;
-    	String file_id = Metadata.get_file_id(Paths.get(file_path));
+    	String file_id = fileManager.get_file_id(file_path);
+
+    	if(file_id == null){
+    		return;
+		}
 
 		try {
 			fs = fileManager.createFile(file_path);
@@ -248,9 +253,9 @@ public class Server implements IBackup{
         Server sv;
         try {
         	sv = new Server(args);
-            IBackup peer = (IBackup) UnicastRemoteObject.exportObject(sv,0);
-            Registry registry = LocateRegistry.createRegistry(0);
-            registry.rebind(remote_object_name,peer);
+			IBackup peer = (IBackup) UnicastRemoteObject.exportObject(sv,0);
+			Registry registry = LocateRegistry.getRegistry();
+			registry.bind(remote_object_name,peer);
             System.out.println("RMI ready!");
             sv.test();
         } catch(IOException e){
@@ -260,7 +265,6 @@ public class Server implements IBackup{
             System.err.println("RMI failed: " + e.toString());
             e.printStackTrace();
         }
-        
     }
 }
 //Chunk -> (fileID,chunkNum) max size : 64KBytes (64000Bytes)

@@ -337,4 +337,15 @@ public class FileManager {
 
         return res;
     }
+
+    public String get_file_id(String file_path) {
+
+        for(int i = 0 ; i < my_files.size(); i++){
+            if(my_files.get(i).getFile_path().equals(file_path)){
+                return my_files.get(i).fileID;
+            }
+        }
+
+        return null;
+    }
 }
