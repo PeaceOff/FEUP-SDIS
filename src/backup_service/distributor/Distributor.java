@@ -1,12 +1,12 @@
 package backup_service.distributor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Distributor {
 	
-	public HashMap<String, IDistribute> distributor = new HashMap<String, IDistribute>();
-	public HashMap<String, ArrayList<IMessageListener>> msgLstnr = new HashMap<String, ArrayList<IMessageListener>>();
+	public ConcurrentHashMap<String, IDistribute> distributor = new ConcurrentHashMap<String, IDistribute>();
+	public ConcurrentHashMap<String, ArrayList<IMessageListener>> msgLstnr = new ConcurrentHashMap<String, ArrayList<IMessageListener>>();
 	
 	public void addDistributor(String name, IDistribute service){
 		
@@ -22,7 +22,7 @@ public class Distributor {
 		
 	}
 	
-	public void addListener(String name, IMessageListener service){
+	public synchronized void addListener(String name, IMessageListener service){
 			
 		ArrayList<IMessageListener> array = null;
 		if(msgLstnr.containsKey(name))

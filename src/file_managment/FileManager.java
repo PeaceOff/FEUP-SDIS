@@ -77,7 +77,9 @@ public class FileManager {
         {
             FileInputStream fis = new FileInputStream(path.toFile());
             ObjectInputStream ois = new ObjectInputStream(fis);
-            my_files = (ArrayList<Metadata>)ois.readObject();
+            Object ob = ois.readObject();
+           
+            my_files = (ArrayList<Metadata>)ob;
             disk_size = (Integer)ois.readInt();
             ois.close();
             fis.close();
@@ -175,7 +177,7 @@ public class FileManager {
         mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
     }
 
-    public byte[] get_file_chunk(String fileID, int chunk_num) {
+    public synchronized byte[] get_file_chunk(String fileID, int chunk_num) {
 
         //TODO correr ao receber um pedido de GETCHUNK 
 
@@ -216,7 +218,7 @@ public class FileManager {
     	
     }
     
-    public void delete_file(String fileID){
+    public synchronized void delete_file(String fileID){
 
         String path = this.main_path + File.separator + fileID;
 
@@ -226,7 +228,7 @@ public class FileManager {
 		mapper.file_removed(fileID);
     }
 
-    public boolean delete_file_chunk(String fileID, int chunk_num){
+    public synchronized boolean delete_file_chunk(String fileID, int chunk_num){
 
         //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
@@ -239,6 +241,7 @@ public class FileManager {
 
             if(Paths.get(file_path).toFile().listFiles().length <= 1){
                 recursiveDelete(Paths.get(file_path).toFile());
+                mapper.file_removed(fileID);
             }
             return true;
         } catch (IOException e) {
@@ -248,7 +251,7 @@ public class FileManager {
         return false;
     }
 
-    public boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID){
+    public synchronized boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID){
 
         if(is_my_file(fileID))
             return true;
@@ -275,7 +278,7 @@ public class FileManager {
     }
     
     private boolean enough_disk_space(){
-        return (getFolderSize(Paths.get(this.main_path).toFile()) + this.chunk_size_bytes <= this.disk_size);
+        return (getFolderSize(Paths.get(this.main_path).toFile()) + FileManager.chunk_size_bytes <= this.disk_size);
     }
 
     public int getDisk_size() {

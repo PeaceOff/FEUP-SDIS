@@ -10,6 +10,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import javafx.stage.DirectoryChooser;
+
 public class Mapper {
 
     private HashMap<String,HashMap<Integer, ChunkInfo>> mapper = new HashMap<>();
@@ -48,6 +50,17 @@ public class Mapper {
         write_data_file(fileID);
 
     }
+    
+    
+    public int get_rep_degree(String fileID, int chunk_no){
+
+        if(exists(fileID,chunk_no))
+            return mapper.get(fileID).get(chunk_no).getRep_degree();
+
+        return -1;
+
+    }
+    
 
     public int get_local_count(String fileID, int chunk_no){
 
@@ -146,7 +159,7 @@ public class Mapper {
         }
         return res;
     }
-
+    /*
     private void write_data_file(String file_id, HashMap<Integer,ChunkInfo> hmap){
 
 
@@ -154,7 +167,7 @@ public class Mapper {
 
         write_slave(path,hmap);
 
-    }
+    }/**/
 
     public void write_slave(String p, Serializable obj) {
 
@@ -174,7 +187,7 @@ public class Mapper {
         }catch(IOException e)
         {
             Debug.log("WRITE_SLAVE"," Could not write file data");
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
@@ -198,7 +211,7 @@ public class Mapper {
         }catch(IOException e)
         {
             Debug.log("WRITE_SLAVE"," Could not write file data");
-            //e.printStackTrace();
+            e.printStackTrace();
         }
 
     }
@@ -206,17 +219,21 @@ public class Mapper {
     private void write_data_file(String file_id){
 
         String path = this.main_path + File.separator + file_id + File.separator + "data";
-
+        
         if(!mapper.containsKey(file_id))
             return;
-
+        
+        if(!Files.exists(Paths.get(this.main_path + File.separator + file_id + File.separator))){
+        	return; 
+        }
+        
         HashMap<Integer,ChunkInfo> hmap = mapper.get(file_id);
 
         write_slave(path,hmap);
 
     }
 
-    private void write_to_data_file(){
+    /*private void write_to_data_file(){
 
         for (Map.Entry<String, HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
 
@@ -225,7 +242,7 @@ public class Mapper {
             write_data_file(file_id,hmap);
 
         }
-    }
+    }/**/
 
     public FileChunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
 
@@ -270,8 +287,10 @@ public class Mapper {
 
         if(hmap.containsKey(chunk_no))
             hmap.remove(chunk_no);
-
-        mapper.get(fileID).remove(chunk_no);
+        
+        if(mapper.get(fileID).size() == 0){
+        	mapper.remove(fileID);
+        } 
     }
 
     public boolean peer_removed_chunk(String fileID, int chunk_no, int senderID) {

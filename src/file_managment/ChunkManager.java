@@ -32,7 +32,7 @@ public class ChunkManager {
 		return files.get(fileID);
 	}
 	
-	public void AddChunk(String fileID, int chunkNo, byte[] data){
+	public synchronized void AddChunk(String fileID, int chunkNo, byte[] data){
 		if(!acceptedIDs.contains(fileID)){
 			Debug.log("#########Couldn't Find FILEID!!!");
 			return;

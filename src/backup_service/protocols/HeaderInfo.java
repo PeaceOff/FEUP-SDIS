@@ -32,6 +32,18 @@ public class HeaderInfo {
 		
 	}
 	
+	public HeaderInfo(String version, int senderID, String fileID, int chunkNo, int replicationDeg){
+		this.version = version;
+		this.senderID = senderID;
+		this.fileID = fileID;
+		this.chunkNo = chunkNo;
+		this.replicationDeg = replicationDeg;
+	}
+	
+	public HeaderInfo clone() {
+		return new HeaderInfo(version, senderID, fileID, chunkNo, replicationDeg);
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();

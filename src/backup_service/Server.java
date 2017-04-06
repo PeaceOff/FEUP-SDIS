@@ -1,8 +1,5 @@
 package backup_service;
 
-import java.io.Serializable;
-import java.nio.file.Paths;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -79,7 +76,7 @@ public class Server implements IBackup {
 			e.printStackTrace();
 		}
     	
-    	Subprotocol mdb = channelManager.getMDB();
+    	//Subprotocol mdb = channelManager.getMDB();
     	/*
     	try {
     		if(channelManager.getServerID() == 1)
@@ -180,8 +177,6 @@ public class Server implements IBackup {
 						if(chunkCounter > filePart.totalChunks())
 							break;
 				}else{
-					fs.close();
-					fileManager.delete_restored_file(file_path);
 					Debug.log("Error Receiving CHUNK Retrieving!");
 				}
 			} catch (Exception e) {

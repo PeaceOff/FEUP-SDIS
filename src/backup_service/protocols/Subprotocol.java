@@ -47,7 +47,7 @@ public class Subprotocol {
 		return channelManager.getMDR();
 	}
 	
-	public void sendMessage(byte[] message) throws IOException{
+	public synchronized void sendMessage(byte[] message) throws IOException{
 		this.connection.sendData(message);
 	}
 	

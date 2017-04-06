@@ -10,10 +10,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 public class Metadata implements Serializable {
 
-    private String file_path;
+	private static final long serialVersionUID = -5466727323478201832L;
+	private String file_path;
     private String creation_time;
     private String last_modification;
     private long size;
@@ -91,9 +93,9 @@ public class Metadata implements Serializable {
         res += "File Path : " + file_path + '\n';
         res += "Backup Service id : " + fileID + '\n' + "Desired Rep Degree : " + rep_degree + '\n';
 
-        Iterator it = chunks_n_reps.entrySet().iterator();
+        Iterator<Entry<Integer, Integer>> it = chunks_n_reps.entrySet().iterator();
         while (it.hasNext()) {
-            HashMap.Entry pair = (HashMap.Entry)it.next();
+            HashMap.Entry<Integer,Integer> pair = (HashMap.Entry<Integer,Integer>)it.next();
             res += "\tChunk Number : " + pair.getKey() + " | Perceived Rep Degree : " + pair.getValue() + '\n';
             it.remove();
         }

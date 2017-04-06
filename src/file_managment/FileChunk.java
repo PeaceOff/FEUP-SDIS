@@ -9,7 +9,12 @@ public class FileChunk {
     public void setChunk_data(byte[] chunk_data) {
         this.chunk_data = chunk_data;
     }
+    
+    public byte[] getChunk_data() {
+        return chunk_data;
+    }
 
+    
     public void setN_chunk(int n_chunk) {
         this.n_chunk = n_chunk;
     }

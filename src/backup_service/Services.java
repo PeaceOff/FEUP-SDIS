@@ -1,10 +1,8 @@
 package backup_service;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
 
-import backup_service.distributor.Distributor;
 import backup_service.distributor.IMessageListener;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.HeaderInfo;
@@ -16,8 +14,6 @@ public class Services implements IMessageListener {
 	
 	private static int counter = 0;
 	
-	public Distributor distr;
-	
 	private ChannelManager channelManager;
 	
 	private int id = 0;
@@ -28,7 +24,7 @@ public class Services implements IMessageListener {
 	
 	public Services (ChannelManager chnl, FileManager fM){
 		channelManager = chnl;
-		chnl.getMC().getDistributor().addListener("STORED", this);
+		channelManager.getMC().getDistributor().addListener("STORED", this);
 		id = counter++;
 		fileManager = fM;
 	}
@@ -39,7 +35,7 @@ public class Services implements IMessageListener {
 
 	@Override
 	protected void finalize() throws Throwable {
-		distr.removeListener("STORED", this);
+		channelManager.getMC().getDistributor().removeListener("STORED", this);
 		super.finalize();
 	}
 	
@@ -53,6 +49,11 @@ public class Services implements IMessageListener {
 	}
 	
 	public void sendPutChunk(String fileID, int chunkNo, int degree, byte[] data) throws IOException{
+		sendPutChunk(fileID, chunkNo, degree, data, false);
+	}
+	
+	
+	public void sendPutChunk(String fileID, int chunkNo, int degree, byte[] data, boolean containsChunk) throws IOException{
 		record = true;
 		confirmations.clear();
 		this.fileID = fileID;
@@ -71,20 +72,23 @@ public class Services implements IMessageListener {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}  
+			int i = 0;
+			if(containsChunk)
+				i=1;
 			
-			if(getReceptions() >= degree){
-				Debug.log("SERVICES_SENDPUTCHUNK","Finished BACKUP! Receptions:" +getReceptions());
+			if(getReceptions() + i >= degree){
+				Debug.log("SERVICES_SENDPUTCHUNK[ " + chunkNo + " ]","Finished BACKUP! Receptions:" +getReceptions());
 				fileManager.add_chunk_rep(fileID,chunkNo,getReceptions());
 				record = false;
 				return;
 			}
-			Debug.log("SERVICES_SENDPUTCHUNK","Not Enought Confirmations!" + getReceptions() + "Waited:" + waitTime +"seconds");
+			Debug.log("SERVICES_SENDPUTCHUNK[ " + chunkNo + " ]","Not Enought Confirmations!" + getReceptions() + "Waited:" + waitTime +"seconds");
 			
 			waitTime*=2;
 			
 		}
 		record = false;
-		Debug.log(0, "SERVICES_SENDPUTCHUNK", "Could not reach desired replication degree");
+		Debug.log(0, "SERVICES_SENDPUTCHUNK[ " + chunkNo + " ]", "Could not reach desired replication degree");
 	}
 	
 	private int getReceptions(){

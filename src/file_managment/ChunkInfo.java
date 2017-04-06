@@ -7,7 +7,8 @@ import utils.Debug;
 
 public class ChunkInfo implements Serializable{
 
-    private int rep_degree;
+	private static final long serialVersionUID = 4728120351147510204L;
+	private int rep_degree;
     private HashSet<Integer> peers;
 
     public ChunkInfo(int rep_degree, HashSet<Integer> peers) {
