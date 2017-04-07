@@ -321,24 +321,20 @@ public class FileManager {
     }
 
     public String delete_my_file(String path_to_file) {
-
-        Path file = Paths.get(path_to_file);
-        String name = file.toFile().getName();
         String res  = "";
 
-        if(!is_my_file(Metadata.get_file_id(file))){
-            return null;
-        }
-
-        for(int i = 0; i < my_files.size(); i++)
-            if(my_files.get(i).getFile_path().equals(name)) {
+        for(int i = 0; i < my_files.size(); i++){
+            
+        	if(my_files.get(i).getFile_path().equals(path_to_file)) {
                 res = my_files.get(i).fileID;
                 my_files.remove(i);
                 save_my_files();
-                break;
+                return res;
             }
+        }
 
-        return res;
+        return null;
+        
     }
 
     public String get_file_id(String file_path) {
