@@ -19,8 +19,6 @@ public class FileManager {
     private String main_path;
     private Mapper mapper;
     private My_files my_files;
-
-    //private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
     
     private ChunkManager chunkManager = new ChunkManager();
 
@@ -53,7 +51,39 @@ public class FileManager {
     private void load_information(Path path){
 
         load_my_files();//Vamos ler os ficheiros que fizemos backup como initiator-peer
+        load_in_progress();//Vamos ver se ficamos com algum ficheiro a meio do backup
         mapper.load_my_data_files(path);//E vamos preencher a informação dos chunks que temos guardados em disco
+
+    }
+
+    public void add_file_in_progress(String name,int c){
+        my_files.add_file_in_progress(name,c);
+        save_in_progress();
+    }
+
+    public void add_file_in_progress(String name){
+        my_files.add_file_in_progress(name);
+        save_in_progress();
+    }
+
+    public void remove_file_in_progress(String name){
+
+        my_files.remove_file_in_progress(name);
+        save_in_progress();
+
+    }
+
+    public ArrayList<FileInProgress> get_files_in_progress(){
+
+        return my_files.get_files_in_progress();
+
+    }
+
+    public void save_in_progress(){
+
+        String path = main_path + File.separator + "in_progress";
+
+        Utilities.write_slave(path,my_files.getIn_progress());
 
     }
 
@@ -62,6 +92,34 @@ public class FileManager {
         String path = main_path + File.separator + "my_files";
 
         Utilities.write_slave(path,my_files.getMy_files(),disk_size);
+
+    }
+
+    public void load_in_progress() {
+
+        //TODO se tiver algum elemento iniciar o backup
+
+        String path_to_file = main_path + File.separator + "in_progress";
+        Path path = Paths.get(path_to_file);
+
+        if(!Files.exists(path))
+            return;
+
+        try
+        {
+            FileInputStream fis = new FileInputStream(path.toFile());
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Object ob = ois.readObject();
+
+            my_files.setIn_progress((ArrayList<FileInProgress>)ob);
+            ois.close();
+            fis.close();
+        }catch(IOException e)
+        {
+            Debug.log("LOAD_IN_PROGRESS"," Failed to open my_files file");
+        } catch (ClassNotFoundException e) {
+            Debug.log("LOAD_IN_PROGRESS"," Class not found at reading ArrayList");
+        }
 
     }
 
