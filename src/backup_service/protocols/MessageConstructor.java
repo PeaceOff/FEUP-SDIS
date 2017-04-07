@@ -1,16 +1,16 @@
 package backup_service.protocols;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
-
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 import utils.Utilities;
 
 public class MessageConstructor {
 	
-	private static ByteOutputStream bos = new ByteOutputStream();
+	private static ByteArrayOutputStream bos = new ByteArrayOutputStream();
 	
 	public static final HashMap<String, Integer> commandArgs;
 	static
@@ -30,90 +30,99 @@ public class MessageConstructor {
 		return -1;
 	}
 	
+	public static byte[] ASCII(String s){
+		return s.getBytes(StandardCharsets.US_ASCII);
+	}
+	
 	public static byte[] getSTORED(String fileID, int chunkNo){
 		bos.reset();
-		
-		bos.writeAsAscii("STORED");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
+		try {
+			
+		bos.write(ASCII("STORED"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(ASCII(" " + chunkNo));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	public static byte[] getPUTCHUNK(String fileID, int chunkNo, int replicationDeg, byte[] data) throws IOException{
 		bos.reset();
 		
-		bos.writeAsAscii("PUTCHUNK");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
-		bos.writeAsAscii(" " + replicationDeg);
+		bos.write(ASCII("PUTCHUNK"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(ASCII(" " + chunkNo));
+		bos.write(ASCII(" " + replicationDeg));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		bos.write(data);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	public static byte[] getGETCHUNK(String fileID, int chunkNo) throws IOException{
 		bos.reset();
 		
-		bos.writeAsAscii("GETCHUNK");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
+		bos.write(ASCII("GETCHUNK"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(ASCII(" " + chunkNo));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	public static byte[] getCHUNK(String fileID, int chunkNo, byte[] data) throws IOException{
 		bos.reset();
 		
-		bos.writeAsAscii("CHUNK");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
+		bos.write(ASCII("CHUNK"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(ASCII(" " + chunkNo));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		bos.write(data);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	public static byte[] getDELETE(String fileID) throws IOException{
 		bos.reset();
 		
-		bos.writeAsAscii("DELETE");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
+		bos.write(ASCII("DELETE"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	public static byte[] getREMOVED(String fileID, int chunkNo) throws IOException{
 		bos.reset();
 		
-		bos.writeAsAscii("REMOVED");
-		bos.writeAsAscii(" " + ChannelManager.getVersion());
-		bos.writeAsAscii(" " + ChannelManager.getServerID());
-		bos.writeAsAscii(" " + fileID);
-		bos.writeAsAscii(" " + chunkNo);
+		bos.write(ASCII("REMOVED"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(ASCII(" " + chunkNo));
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		
-		return Arrays.copyOf(bos.getBytes(), bos.size());
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	
 	
