@@ -17,8 +17,9 @@ public class FileManager {
     public static final int chunk_size_bytes = 64000;
     private String main_path;
     private Mapper mapper;
+    private My_files my_files;
 
-    private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
+    //private ArrayList<Metadata> my_files = new ArrayList<Metadata>();//Ficheiros que eu enviei para backup
     
     private ChunkManager chunkManager = new ChunkManager();
 
@@ -26,6 +27,7 @@ public class FileManager {
     	
         this.main_path = System.getProperty("java.class.path") + File.separator + folderName;
         this.mapper = new Mapper(this.main_path);
+        this.my_files = new My_files();
         Path path = Paths.get(this.main_path);
 
         if(Files.exists(path)){//Ja existe vamos ler o my_files
@@ -43,10 +45,7 @@ public class FileManager {
 
     public void add_chunk_rep(String fileID,int chunk_no, int rep){
 
-        for(int i = 0; i < my_files.size(); i++){
-            if(my_files.get(i).fileID.equals(fileID))
-                my_files.get(i).append_reps(chunk_no,rep);
-        }
+        my_files.add_chunk_rep(fileID,chunk_no,rep);
 
     }
 
@@ -61,7 +60,7 @@ public class FileManager {
 
         String path = main_path + File.separator + "my_files";
 
-        mapper.write_slave(path,my_files,disk_size);
+        mapper.write_slave(path,my_files.getMy_files(),disk_size);
 
     }
 
@@ -79,7 +78,7 @@ public class FileManager {
             ObjectInputStream ois = new ObjectInputStream(fis);
             Object ob = ois.readObject();
            
-            my_files = (ArrayList<Metadata>)ob;
+            my_files.setMy_files((ArrayList<Metadata>)ob);
             disk_size = (Integer)ois.readInt();
             ois.close();
             fis.close();
@@ -133,13 +132,7 @@ public class FileManager {
 
     public boolean is_my_file(String fileID){
 
-        for(int i = 0; i < my_files.size(); i++){
-
-            if(my_files.get(i).fileID.equals(fileID))
-                return true;
-        }
-
-        return false;
+        return this.my_files.is_my_file(fileID);
     }
 
     public boolean save_chunk(byte[] chunkData, String fileID, int chunk_num, int senderID, int replication_degree) throws IOException {
@@ -310,9 +303,7 @@ public class FileManager {
 
         String res = "My Files : \n";
 
-        for (Metadata m : my_files) {
-            res += '\t' + m.toString() + '\n';
-        }
+        res += my_files.toString();
 
         res += "---------------------------------------------------------------\n";
 
@@ -326,30 +317,18 @@ public class FileManager {
     }
 
     public String delete_my_file(String path_to_file) {
-        String res  = "";
 
-        for(int i = 0; i < my_files.size(); i++){
-            
-        	if(my_files.get(i).getFile_path().equals(path_to_file)) {
-                res = my_files.get(i).fileID;
-                my_files.remove(i);
-                save_my_files();
-                return res;
-            }
-        }
+        String res  = my_files.delete_my_file(path_to_file);
 
-        return null;
-        
+        if(res != null)
+            save_my_files();
+
+        return res;
     }
 
     public String get_file_id(String file_path) {
 
-        for(int i = 0 ; i < my_files.size(); i++){
-            if(my_files.get(i).getFile_path().equals(file_path)){
-                return my_files.get(i).fileID;
-            }
-        }
+        return my_files.get_file_id(file_path);
 
-        return null;
     }
 }
