@@ -3,5 +3,5 @@ set /p nS=Number of Servers?
 set /p sS=Starting at?
 set /A total= %nS% + %sS% - 1
 FOR /L %%A IN (%sS%,1,%total%) DO (
-  start java backup_service/Server 224.1.1.1:1111 224.2.2.2:2222 224.3.3.3:3333 1.0 %%A "%%A"
+  start java backup_service/Server 1.0 %%A "%%A" 224.1.1.1:1111 224.2.2.2:2222 224.3.3.3:3333
 )
