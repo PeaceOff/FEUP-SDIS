@@ -39,7 +39,6 @@ public class Server implements IBackup {
     	
     	channelManager = new ChannelManager(args, distributors);
     	services = new Services(channelManager,fileManager);
-;    	
     	distributors[0].addDistributor("STORED", new Stored(fileManager));
     	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
     	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
@@ -65,34 +64,6 @@ public class Server implements IBackup {
 	public ChannelManager getChannelManager() {
 		return channelManager;
 	}
-
-
-
-	public void test(){
-    	try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	//Subprotocol mdb = channelManager.getMDB();
-    	/*
-    	try {
-    		if(channelManager.getServerID() == 1)
-    			services.sendPutChunk("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 255, 3, new byte[]{1,2,3});
-    		if(channelManager.getServerID() == 2)
-    			this.channelManager.getMC().sendMessage(MessageConstructor.getGETCHUNK("THIS_IS_THE_FILE_ID_BRO_255BYTESTHIS_IS_THE_FILE_ID_BRO_255BYTES", 1));
-    		if(channelManager.getServerID() == 3)
-    			this.channelManager.getMC().sendMessage(MessageConstructor.getREMOVED("9DF839A8DDC6641A43BA14AD8EFE1A10E7142CAB18AB8E40B7C9691021467B3B", 1));
-    		
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-    	
-    }
 	
 	@Override
     public void backup(String file_path, int rep_degree) {
@@ -255,7 +226,6 @@ public class Server implements IBackup {
 			Registry registry = LocateRegistry.getRegistry();
 			registry.bind(remote_object_name,peer);
             System.out.println("RMI ready!");
-            sv.test();
         } catch(IOException e){
         	System.err.println("Error Initializing Server: " + e.toString());
         	e.printStackTrace();
@@ -272,12 +242,12 @@ Restore a file
 Delete a file
 Manage local service storage
 Retrieve local service state information
-*/
-/* Protocolos
-* MC:Port MDB:Port MDR:Port Protocol_Version ServerID ServiceAccessPoint
-Messages
-Header
-<MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
+
+Protocolos
+	MC:Port MDB:Port MDR:Port Protocol_Version ServerID ServiceAccessPoint
+	Messages
+		Header
+		<MessageType> <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF>
 
 1. Chunk backup
 PUTCHUNK <Version> <SenderId> <FileId> <ChunkNo> <ReplicationDeg> <CRLF><CRLF><Body> (para o MDB)
