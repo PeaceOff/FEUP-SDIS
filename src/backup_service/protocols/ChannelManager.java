@@ -15,13 +15,13 @@ public class ChannelManager {
 	private Subprotocol[] connections = new Subprotocol[3];
 	
 	public ChannelManager(String[] args, Distributor[] distributors){
-		protocol_version = args[3]; //Verificar!
-    	server_id = Integer.parseInt(args[4]); //Verificar!
+		protocol_version = args[0]; //Verificar!
+    	server_id = Integer.parseInt(args[1]); //Verificar!
     	
 		try {
-			connections[MC]  = new Subprotocol(args[0],  this,  distributors[0]);
-	    	connections[MDB] = new Subprotocol(args[1],  this,  distributors[1]);
-	    	connections[MDR] = new Subprotocol(args[2],  this,  distributors[2]);
+			connections[MC]  = new Subprotocol(args[3],  this,  distributors[0]);
+	    	connections[MDB] = new Subprotocol(args[4],  this,  distributors[1]);
+	    	connections[MDR] = new Subprotocol(args[5],  this,  distributors[2]);
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;

@@ -31,7 +31,7 @@ public class Server implements IBackup {
     
     public Server(String[] args) throws IOException, NoSuchAlgorithmException{
     	
-    	fileManager = new FileManager("Backup!"+args[4]);
+    	fileManager = new FileManager("Backup!"+args[1]);
     	
     	distributors[0] = new Distributor();
     	distributors[1] = new Distributor();
@@ -244,7 +244,7 @@ public class Server implements IBackup {
     
     public static void main(String args[]){
 
-		String remote_object_name = args[5];
+		String remote_object_name = args[2];
         Server sv;
         try {
         	sv = new Server(args);
