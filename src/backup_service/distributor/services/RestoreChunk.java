@@ -9,10 +9,12 @@ import utils.Debug;
 public class RestoreChunk implements IDistribute {
 	
 	private FileManager fileManager;
+	private ChannelManager channelManager;
 	private HeaderInfo header;
 	
-	public RestoreChunk(FileManager fileManager){
+	public RestoreChunk(ChannelManager channelManager, FileManager fileManager){
 		this.fileManager = fileManager;
+		this.channelManager = channelManager;
 	}
 	
 	
@@ -24,7 +26,7 @@ public class RestoreChunk implements IDistribute {
 			return false;
 		
 		Debug.log(1,"CHUNK","Received[" + header.chunkNo + "]" + header.fileID);
-		
+		this.channelManager.getMDR().expectBody=true;
 		return true;
 	}
 

@@ -49,7 +49,7 @@ public class Server implements IBackup {
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
     	distributors[1].addDistributor("DATA", PUTCHUNK);
     	
-    	IDistribute CHUNK = new RestoreChunk(fileManager);
+    	IDistribute CHUNK = new RestoreChunk(channelManager,fileManager);
     	distributors[2].addDistributor("CHUNK", CHUNK);
     	distributors[2].addDistributor("DATA", CHUNK);
     	

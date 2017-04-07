@@ -189,11 +189,14 @@ public class FileManager {
 
         byte[] res = new byte[chunk_size_bytes];
 
-        try {
+        try { 
 
             BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
             int size = reader.read(res,0,chunk_size_bytes);
-            res = Arrays.copyOf(res, size);
+            if(size != 0)
+            	res = Arrays.copyOf(res, size);
+            else
+            	res = new byte[0];
             reader.close();
 
         } catch (IOException e) {
