@@ -1,8 +1,9 @@
 package utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Utilities {
 	
@@ -41,6 +42,53 @@ public class Utilities {
 			e.printStackTrace();
 		}
 		return "";
+	}
+
+	public static void write_slave(String p, Serializable obj) {
+
+		Path path = Paths.get(p);
+
+		try {
+
+			if(!Files.exists(path))
+				Files.createFile(path);
+			FileOutputStream fos = new FileOutputStream(path.toFile());
+			fos.write(("").getBytes());
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(obj);
+			oos.close();
+			fos.close();
+
+		}catch(IOException e)
+		{
+			Debug.log("WRITE_SLAVE"," Could not write file data");
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void write_slave(String p, Serializable obj,int disk_size) {
+
+		Path path = Paths.get(p);
+
+		try {
+
+			if(!Files.exists(path))
+				Files.createFile(path);
+			FileOutputStream fos = new FileOutputStream(path.toFile());
+			fos.write(("").getBytes());
+			ObjectOutputStream oos = new ObjectOutputStream(fos);
+			oos.writeObject(obj);
+			oos.writeInt(disk_size);
+			oos.close();
+			fos.close();
+
+		}catch(IOException e)
+		{
+			Debug.log("WRITE_SLAVE"," Could not write file data");
+			e.printStackTrace();
+		}
+
 	}
 	
 }

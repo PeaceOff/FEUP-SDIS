@@ -1,6 +1,7 @@
 package file_managment;
 
 import utils.Debug;
+import utils.Utilities;
 
 import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
@@ -60,7 +61,7 @@ public class FileManager {
 
         String path = main_path + File.separator + "my_files";
 
-        mapper.write_slave(path,my_files.getMy_files(),disk_size);
+        Utilities.write_slave(path,my_files.getMy_files(),disk_size);
 
     }
 

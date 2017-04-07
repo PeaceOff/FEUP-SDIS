@@ -1,6 +1,7 @@
 package file_managment;
 
 import utils.Debug;
+import utils.Utilities;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -157,62 +158,6 @@ public class Mapper {
         }
         return res;
     }
-    /*
-    private void write_data_file(String file_id, HashMap<Integer,ChunkInfo> hmap){
-
-
-        String path = this.main_path + File.separator + file_id + File.separator + "data";
-
-        write_slave(path,hmap);
-
-    }/**/
-
-    public void write_slave(String p, Serializable obj) {
-
-        Path path = Paths.get(p);
-
-        try {
-
-            if(!Files.exists(path))
-                Files.createFile(path);
-            FileOutputStream fos = new FileOutputStream(path.toFile());
-            fos.write(("").getBytes());
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(obj);
-            oos.close();
-            fos.close();
-
-        }catch(IOException e)
-        {
-            Debug.log("WRITE_SLAVE"," Could not write file data");
-            e.printStackTrace();
-        }
-
-    }
-
-    public void write_slave(String p, Serializable obj,int disk_size) {
-
-        Path path = Paths.get(p);
-
-        try {
-
-            if(!Files.exists(path))
-                Files.createFile(path);
-            FileOutputStream fos = new FileOutputStream(path.toFile());
-            fos.write(("").getBytes());
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(obj);
-            oos.writeInt(disk_size);
-            oos.close();
-            fos.close();
-
-        }catch(IOException e)
-        {
-            Debug.log("WRITE_SLAVE"," Could not write file data");
-            e.printStackTrace();
-        }
-
-    }
 
     private void write_data_file(String file_id){
 
@@ -227,20 +172,9 @@ public class Mapper {
         
         HashMap<Integer,ChunkInfo> hmap = mapper.get(file_id);
 
-        write_slave(path,hmap);
+        Utilities.write_slave(path,hmap);
 
     }
-
-    /*private void write_to_data_file(){
-
-        for (Map.Entry<String, HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
-
-            String file_id = entry.getKey();
-            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
-            write_data_file(file_id,hmap);
-
-        }
-    }/**/
 
     public FileChunk get_chunk_to_delete(){//Retorna a chunk que tem mais replicações na rede
 
