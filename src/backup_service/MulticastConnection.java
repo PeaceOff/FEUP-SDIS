@@ -32,6 +32,10 @@ public class MulticastConnection extends Thread {
 	public ConnectionInformation getConnectionInfo() {
 		return connectionInfo;
 	}
+	
+	public int getPort(){
+		return connectionInfo.getPort();
+	}
 
 	private void joinGroup() throws IOException{
 		socket = new MulticastSocket(connectionInfo.getPort());
@@ -50,6 +54,8 @@ public class MulticastConnection extends Thread {
 		byte[] buf = new byte[64*1024];
 		DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 		socket.receive(receivePacket);
+		protocol.setLastAddress(receivePacket.getAddress());
+		protocol.setLastPort(receivePacket.getPort());
 		//Debug.log(connectionInfo.toString(),""+receivePacket.getLength());
 		return Arrays.copyOfRange(buf,0,receivePacket.getLength());
 	}

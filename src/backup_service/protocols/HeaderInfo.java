@@ -1,8 +1,5 @@
 package backup_service.protocols;
 
-
-import utils.Debug;
-
 public class HeaderInfo {
 	
 	public String version = "None";
@@ -17,7 +14,6 @@ public class HeaderInfo {
 		String[] res = header.split(" ");
 		
 		int nArgs = MessageConstructor.getArgumentNumber(res[0]);
-		Debug.log("HEADER_INFO","n Args" + nArgs);
 		
 		if(nArgs < 1) return;
 		version = res[1];

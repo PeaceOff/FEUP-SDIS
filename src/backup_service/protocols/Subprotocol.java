@@ -2,6 +2,7 @@ package backup_service.protocols;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 
 import backup_service.MulticastConnection;
 import backup_service.distributor.Distributor;
@@ -11,6 +12,8 @@ public class Subprotocol {
 	private MulticastConnection connection;
 	private ChannelManager channelManager;
 	private Distributor distributor;
+	private InetAddress last_addr;
+	private int last_port;
 	public Subprotocol(String ipNport, ChannelManager channelManager, Distributor distributor) throws IOException{
 		connection = new MulticastConnection(ipNport, this);
 		this.channelManager = channelManager;
@@ -21,6 +24,10 @@ public class Subprotocol {
 	
 	public void start(){
 		connection.start();
+	}
+	
+	public int getPort(){
+		return connection.getPort();
 	}
 	
 	public Distributor getDistributor(){
@@ -51,6 +58,22 @@ public class Subprotocol {
 	
 	public synchronized void sendMessage(byte[] message) throws IOException{
 		this.connection.sendData(message);
+	}
+	
+	public void setLastAddress(InetAddress addr){
+		this.last_addr = addr;
+	}
+	
+	public InetAddress getLastAddress(){
+		return this.last_addr;
+	}
+	
+	public void setLastPort(int port){
+		this.last_port = port;
+	}
+	
+	public int getLastPort(){
+		return last_port;
 	}
 	
 	public void receiveMessage(byte[] message){

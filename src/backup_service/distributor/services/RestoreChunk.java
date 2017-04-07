@@ -25,8 +25,9 @@ public class RestoreChunk implements IDistribute {
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		
-		Debug.log(1,"CHUNK","Received[" + header.chunkNo + "]" + header.fileID);
-		this.channelManager.getMDR().expectBody=true;
+		Debug.log(1,"CHUNK","Received[" + header.chunkNo + "]" + header.fileID + " From Server:" + header.senderID);
+		if(channelManager != null)
+			this.channelManager.getMDR().expectBody=true;  
 		return true;
 	}
 
@@ -35,7 +36,8 @@ public class RestoreChunk implements IDistribute {
 		// TODO Chunk DATA!
 		//Save Data
 
-		Debug.log(2,"CHUNK"," ChunkSize " + header.fileID.length());
+		Debug.log(2,"CHUNK"," ChunkSize " + data.length);
+		Debug.log(2,"CHUNK"," ChunkSize " + header.toString());
 		
 		fileManager.getChunkManager().AddChunk(header.fileID, header.chunkNo, data);
 		

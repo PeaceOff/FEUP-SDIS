@@ -38,15 +38,26 @@ public class Server implements IBackup {
     	distributors[2] = new Distributor();
     	
     	channelManager = new ChannelManager(args, distributors);
+    	Debug.log(0,"SERVER","[" + ChannelManager.getServerID() + "]");
     	services = new Services(channelManager,fileManager);
+  
     	distributors[0].addDistributor("STORED", new Stored(fileManager));
-    	distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
+    	if(ChannelManager.getVersion().equals("1.0")){
+    		Debug.log(1,"Enhancements","DISABLED");
+    		distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
+    	}else{
+    		Debug.log(1,"Enhancements","ENABLED");
+    		distributors[0].addDistributor("GETCHUNK", new Restore2(channelManager, fileManager));
+    		new TCPReceiver(channelManager.getMDR().getPort() + ChannelManager.getServerID(), fileManager).start(); 
+    	}
     	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
     	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager, fileManager));
+    	
     	
     	IDistribute PUTCHUNK = new SaveChunk(channelManager, fileManager);
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
     	distributors[1].addDistributor("DATA", PUTCHUNK);
+    	
     	
     	IDistribute CHUNK = new RestoreChunk(channelManager,fileManager);
     	distributors[2].addDistributor("CHUNK", CHUNK);
