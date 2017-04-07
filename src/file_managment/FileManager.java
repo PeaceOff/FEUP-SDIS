@@ -190,13 +190,15 @@ public class FileManager {
         byte[] res = new byte[chunk_size_bytes];
 
         try { 
-
+        	
+        	if(file.toFile().length() == 0){
+        		return new byte[0];
+        	}
+        	
             BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
             int size = reader.read(res,0,chunk_size_bytes);
-            if(size != 0)
-            	res = Arrays.copyOf(res, size);
-            else
-            	res = new byte[0];
+           
+            res = Arrays.copyOf(res, size);
             reader.close();
 
         } catch (IOException e) {
