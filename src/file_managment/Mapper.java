@@ -10,8 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import javafx.stage.DirectoryChooser;
-
 public class Mapper {
 
     private HashMap<String,HashMap<Integer, ChunkInfo>> mapper = new HashMap<>();

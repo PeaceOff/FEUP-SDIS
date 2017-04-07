@@ -1,8 +1,8 @@
 package utils;
 
 import java.io.ByteArrayInputStream;
-
-import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class Utilities {
 	
@@ -10,7 +10,7 @@ public class Utilities {
 	
 	public static String getLine(ByteArrayInputStream bis){
 		
-		ByteOutputStream bos = new ByteOutputStream();
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		int end = -2;
 		int n = 0; 
 		
@@ -24,12 +24,22 @@ public class Utilities {
 				end=n;
 			if(r == Utilities.CRLF[1])
 				if(end == n - 1){
-					bos.close();
-					return new String(bos.getBytes()).trim();
+					try {
+						bos.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					return new String(bos.toByteArray()).trim();
 				}
 			n++;
 		}
-		bos.close();
+		try {
+			bos.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		return "";
 	}
 	
