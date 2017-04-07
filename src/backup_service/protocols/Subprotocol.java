@@ -17,6 +17,8 @@ public class Subprotocol {
 		this.distributor= distributor;
 	}
 	
+	public boolean expectBody =false;
+	
 	public void start(){
 		connection.start();
 	}
@@ -62,7 +64,7 @@ public class Subprotocol {
 			}
 		}
 		
-		if(bis.available() > 0){
+		if(bis.available() > 0 || expectBody){
 			byte[] lastBytes = new byte[bis.available()];
 			try {
 				bis.read(lastBytes);
@@ -72,6 +74,7 @@ public class Subprotocol {
 			}
 			distributor.routeBytes(lastBytes);
 		}
+		expectBody = false;
 		
 	}
 	
