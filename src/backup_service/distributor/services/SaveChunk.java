@@ -45,7 +45,7 @@ public class SaveChunk extends BaseService implements IMessageListener {
 			return false;
 		
 		Debug.log(1,"PUTCHUNK","Datas:" + header);
-		
+		this.channelManager.getMDB().expectBody = true;
 		
 		return true;
 	}
