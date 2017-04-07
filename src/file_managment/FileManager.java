@@ -19,11 +19,11 @@ public class FileManager {
     private String main_path;
     private Mapper mapper;
     private My_files my_files;
-    
+
     private ChunkManager chunkManager = new ChunkManager();
 
     public FileManager(String folderName) throws IOException, NoSuchAlgorithmException {
-    	
+
         this.main_path = System.getProperty("java.class.path") + File.separator + folderName;
         this.mapper = new Mapper(this.main_path);
         this.my_files = new My_files();
@@ -32,13 +32,13 @@ public class FileManager {
         if(Files.exists(path)){//Ja existe vamos ler o my_files
             //Se ja existir significa que o server foi abaixo e voltou
             load_information(path);
-            return;
-        }
-
-        try {//Senao vamos entao criar o directorio
-            Files.createDirectory(path);
-        } catch (FileAlreadyExistsException e) {
-            System.out.println("Directory already exists!");
+            //TODO se tiver algum elemento iniciar o backup
+        } else {
+            try {//Senao vamos entao criar o directorio
+                Files.createDirectory(path);
+            } catch (FileAlreadyExistsException e) {
+                System.out.println("Directory already exists!");
+            }
         }
     }
 
@@ -56,26 +56,26 @@ public class FileManager {
 
     }
 
-    public void add_file_in_progress(String name,int c){
-        my_files.add_file_in_progress(name,c);
+    public synchronized void add_file_in_progress(String name,int c,int rep_degree){
+        my_files.add_file_in_progress(name,c,rep_degree);
         save_in_progress();
     }
 
-    public void add_file_in_progress(String name){
-        my_files.add_file_in_progress(name);
+    public synchronized void add_file_in_progress(String name,int rep_degree){
+        my_files.add_file_in_progress(name,rep_degree);
         save_in_progress();
     }
 
-    public void remove_file_in_progress(String name){
+    public synchronized void remove_file_in_progress(String name){
 
         my_files.remove_file_in_progress(name);
         save_in_progress();
 
     }
 
-    public ArrayList<FileInProgress> get_files_in_progress(){
+    public synchronized FileInProgress get_next_file_in_progress(){
 
-        return my_files.get_files_in_progress();
+        return my_files.get_next_file_in_progress();
 
     }
 
@@ -96,8 +96,6 @@ public class FileManager {
     }
 
     public void load_in_progress() {
-
-        //TODO se tiver algum elemento iniciar o backup
 
         String path_to_file = main_path + File.separator + "in_progress";
         Path path = Paths.get(path_to_file);
@@ -136,7 +134,7 @@ public class FileManager {
             FileInputStream fis = new FileInputStream(path.toFile());
             ObjectInputStream ois = new ObjectInputStream(fis);
             Object ob = ois.readObject();
-           
+
             my_files.setMy_files((ArrayList<Metadata>)ob);
             disk_size = (Integer)ois.readInt();
             ois.close();
@@ -153,30 +151,18 @@ public class FileManager {
     public FileOutputStream createFile(String file_path) throws IOException{
 
         //String directory = System.getProperty("java.class.path") + File.separator + "_RESTORED";
-    	
+
     	//createDirectory(directory);
     	Files.deleteIfExists(Paths.get(file_path));//apagar o existente para escrever o novo
 
     	File file = new File(file_path);
-    	
+
     	FileOutputStream of = new FileOutputStream(file);
     	return of;
     }
 
-    public void delete_restored_file(String file_path) throws IOException {
-
-        Files.deleteIfExists(Paths.get(file_path));
-    }
-
-    public void createDirectory(String directory) throws IOException{
-    	Path path = Paths.get(directory);
-    	if(!Files.exists(Paths.get(directory))){
-    		Files.createDirectory(path);
-    	}
-    }
-    
     public FileStreamInformation get_chunks_from_file(String path,int rep_degree) throws IOException {
-    	
+
         Path file = Paths.get(path);
         BasicFileAttributes metadata = Files.readAttributes(file, BasicFileAttributes.class);
         BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
@@ -220,10 +206,10 @@ public class FileManager {
     }
 
     public void save_file_chunk_data(String fileID, int chunk_num, int senderID,int replication_degree){
-    	
+
     	if(is_my_file(fileID))
     		return;
-    	
+
         String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
 
         mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
@@ -231,7 +217,7 @@ public class FileManager {
 
     public synchronized byte[] get_file_chunk(String fileID, int chunk_num) {
 
-        //TODO correr ao receber um pedido de GETCHUNK 
+        //TODO correr ao receber um pedido de GETCHUNK
 
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
 
@@ -241,40 +227,40 @@ public class FileManager {
 
         byte[] res = new byte[chunk_size_bytes];
 
-        try { 
-        	
+        try {
+
         	if(file.toFile().length() == 0){
         		return new byte[0];
         	}
-        	
+
             BufferedInputStream reader = new BufferedInputStream(new FileInputStream(file.toFile()));
             int size = reader.read(res,0,chunk_size_bytes);
-           
+
             res = Arrays.copyOf(res, size);
             reader.close();
 
         } catch (IOException e) {
             Debug.log("GET_FILE_CHUNK","Couldn't open/read chunk at " + fileID + ":" + chunk_num);
         }
-       
+
         //TODO enviar mesagem CHUNK
         return res;
     }
-    
+
     private void recursiveDelete(File file){
-    	
+
     	if(!file.exists())
     		return;
-    	
+
     	if(file.isDirectory()){
     		for(File f : file.listFiles())
     			recursiveDelete(f);
     	}
-    	
+
     	file.delete();
-    	
+
     }
-    
+
     public synchronized void delete_file(String fileID){
 
         String path = this.main_path + File.separator + fileID;
@@ -316,13 +302,13 @@ public class FileManager {
         return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
 
     }
-    
+
     public static long getFolderSize(File folder) {
         long length = 0;
         File[] files = folder.listFiles();
-     
+
         int count = files.length;
-     
+
         for (int i = 0; i < count; i++) {
             if (files[i].isFile()) {
                 length += files[i].length();
@@ -333,7 +319,7 @@ public class FileManager {
         }
         return length;
     }
-    
+
     private boolean enough_disk_space(){
         return (getFolderSize(Paths.get(this.main_path).toFile()) + FileManager.chunk_size_bytes <= this.disk_size);
     }
@@ -344,7 +330,7 @@ public class FileManager {
 
     public File setDisk_size(int disk_size) {
         this.disk_size = disk_size;
-  
+
         return Paths.get(this.main_path).toFile();
     }
 

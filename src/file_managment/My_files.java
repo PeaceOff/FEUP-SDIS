@@ -11,12 +11,22 @@ public class My_files {
     private ArrayList<Metadata> my_files = new ArrayList<Metadata>();
     private ArrayList<FileInProgress> in_progress = new ArrayList<FileInProgress>();
 
-    public void add_file_in_progress(String name,int c){
-        in_progress.add(new FileInProgress(name,c));
+    public void add_file_in_progress(String name,int c,int repD){
+
+        for(int i = 0; i < in_progress.size(); i++)
+            if(in_progress.get(i).get_name().equals(name))
+                return;
+
+        in_progress.add(new FileInProgress(name,c,repD));
     }
 
-    public void add_file_in_progress(String name){
-        in_progress.add(new FileInProgress(name));
+    public void add_file_in_progress(String name,int repD){
+
+        for(int i = 0; i < in_progress.size(); i++)
+            if(in_progress.get(i).get_name().equals(name))
+                return;
+
+        in_progress.add(new FileInProgress(name,repD));
     }
 
     public void remove_file_in_progress(String name){
@@ -27,7 +37,6 @@ public class My_files {
                 break;
             }
         }
-
     }
 
     public ArrayList<FileInProgress> get_files_in_progress() {
@@ -106,11 +115,19 @@ public class My_files {
         return null;
     }
 
-    public ArrayList<FileInProgress> getIn_progress() {
-        return in_progress;
-    }
-
     public void setIn_progress(ArrayList<FileInProgress> in_progress) {
         this.in_progress = in_progress;
+    }
+
+    public FileInProgress get_next_file_in_progress() {
+
+        if(in_progress.size() > 0)
+            return in_progress.get(0);
+
+        return null;
+    }
+
+    public ArrayList<FileInProgress> getIn_progress() {
+        return in_progress;
     }
 }

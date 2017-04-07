@@ -4,6 +4,7 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import backup_service.distributor.Distributor;
@@ -16,8 +17,6 @@ import utils.Debug;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-
 
 public class Server implements IBackup {
 	
@@ -64,10 +63,41 @@ public class Server implements IBackup {
     	distributors[2].addDistributor("DATA", CHUNK);
     	
     	//distributors[2].addDistributor("RESTORE", service);
+
+		back_to_backup();
+
     }
 
-    
-    public int getId() {
+	private void back_to_backup() {
+
+    	FileInProgress fip;
+		while((fip = fileManager.get_next_file_in_progress()) != null){
+
+			if(fip.is_a_path()){
+
+				backup(fip.get_name(),fip.getRep_degree());
+
+			} else {
+
+				byte[] fileData = fileManager.get_file_chunk(fip.get_name(),fip.getChunk_no());
+				if(fileData == null) {
+					fileManager.remove_file_in_progress(fip.get_name());
+					continue;
+				}
+
+				try {
+					services.sendPutChunk(fip.get_name(), fip.getChunk_no(), fip.getRep_degree(), fileData,true);
+				} catch (IOException e) {
+					Debug.log("BACK_TO_BACKUP","Failed to backup up!");
+					e.printStackTrace();
+				}
+
+				fileManager.remove_file_in_progress(fip.get_name());
+			}
+		}
+	}
+
+	public int getId() {
 		return id;
 	}
 
@@ -79,6 +109,9 @@ public class Server implements IBackup {
 	@Override
     public void backup(String file_path, int rep_degree) {
     	Debug.log("BACKUP PATH:", file_path);
+
+    	fileManager.add_file_in_progress(file_path,rep_degree);
+
     	try {
 			FileStreamInformation fs = fileManager.get_chunks_from_file(file_path,rep_degree);
 			byte[] chunkData = new byte[FileManager.chunk_size_bytes];
@@ -110,6 +143,8 @@ public class Server implements IBackup {
 			//RETURN MESSAGE TO THE CLIENT TELLING SOMETHING IS WRONG!
 			e.printStackTrace();
 		}
+
+		fileManager.remove_file_in_progress(file_path);
     	
     }
 
@@ -235,7 +270,7 @@ public class Server implements IBackup {
         	sv = new Server(args);
 			IBackup peer = (IBackup) UnicastRemoteObject.exportObject(sv,0);
 			Registry registry = LocateRegistry.getRegistry();
-			registry.bind(remote_object_name,peer);
+			registry.rebind(remote_object_name,peer);
             System.out.println("RMI ready!");
         } catch(IOException e){
         	System.err.println("Error Initializing Server: " + e.toString());
