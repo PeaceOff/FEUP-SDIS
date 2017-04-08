@@ -27,6 +27,7 @@ public class Server implements IBackup {
     private Distributor[] distributors = new Distributor[3];
     private FileManager fileManager = null;
     private Services services = null;
+    private DeleteScheduler deleteScheduler = null;
     
     public Server(String[] args) throws IOException, NoSuchAlgorithmException{
     	
@@ -44,15 +45,18 @@ public class Server implements IBackup {
     	if(ChannelManager.getVersion().equals("1.0")){
     		Debug.log(1,"Enhancements","DISABLED");
     		distributors[0].addDistributor("GETCHUNK", new Restore(channelManager, fileManager));
+			distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
     	}else{
     		Debug.log(1,"Enhancements","ENABLED");
     		distributors[0].addDistributor("GETCHUNK", new Restore2(channelManager, fileManager));
-    		new TCPReceiver(channelManager.getMDR().getPort() + ChannelManager.getServerID(), fileManager).start(); 
+			distributors[0].addDistributor("DELETE", new DeleteFile2(channelManager,fileManager));
+			this.deleteScheduler = new DeleteScheduler(channelManager,fileManager);
+			new DeleteConfirmationReceiver(channelManager.getMC().getPort() + ChannelManager.getServerID(), fileManager).start();
+			new TCPReceiver(channelManager.getMDR().getPort() + ChannelManager.getServerID(), fileManager).start();
     	}
-    	distributors[0].addDistributor("DELETE", new DeleteFile(fileManager));
+
     	distributors[0].addDistributor("REMOVED", new RemoveChunk(channelManager, fileManager));
-    	
-    	
+
     	IDistribute PUTCHUNK = new SaveChunk(channelManager, fileManager);
     	distributors[1].addDistributor("PUTCHUNK", PUTCHUNK);
     	distributors[1].addDistributor("DATA", PUTCHUNK);
@@ -63,7 +67,8 @@ public class Server implements IBackup {
     	distributors[2].addDistributor("DATA", CHUNK);
     	
     	//distributors[2].addDistributor("RESTORE", service);
-
+		if(!ChannelManager.getVersion().equals("1.0"))
+			deleteScheduler.start();
 		back_to_backup();
 
     }
@@ -150,18 +155,45 @@ public class Server implements IBackup {
 
     @Override
     public void delete(String path) {
-    	try {
-		String file_id = fileManager.delete_my_file(path);
+
+    	if(ChannelManager.getVersion().equals("1.0")){
+    		delete_1(path);
+		} else {
+    		delete_2(path);
+		}
+    }
+
+
+	public void delete_1(String path) {
+		try {
+			String file_id = fileManager.delete_my_file(path);
+			if(file_id == null){//Não é um ficheiro meu!
+				Debug.log(1,"DELETE","UnknownFile! " + path);
+				return;
+			}
+			Debug.log(1,"DELETE","Sending DELETE! " + file_id);
+			channelManager.getMC().sendMessage(MessageConstructor.getDELETE(file_id));
+
+		} catch (IOException e) {
+		}
+	}
+
+	public void delete_2(String path) {
+
+
+		String file_id = fileManager.get_file_id(path);
+
 		if(file_id == null){//Não é um ficheiro meu!
 			Debug.log(1,"DELETE","UnknownFile! " + path);
 			return;
-		} 
-		Debug.log(1,"DELETE","Sending DELETE! " + file_id);
-		channelManager.getMC().sendMessage(MessageConstructor.getDELETE(file_id));
-		
-	} catch (IOException e) {
+		}
+
+		fileManager.add_deleted_file_entry(file_id);
+
+		fileManager.delete_my_file(path);
+
+		deleteScheduler.wake();
 	}
-    }
 
     @Override
     public void restore(String file_path) {

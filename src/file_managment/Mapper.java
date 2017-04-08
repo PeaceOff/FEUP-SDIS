@@ -111,6 +111,11 @@ public class Mapper {
         }
     }
 
+    public boolean exists(String fileID){
+
+        return mapper.containsKey(fileID);
+    }
+
     private HashMap<Integer, ChunkInfo> helper_func(HashMap<Integer, ChunkInfo> hmap, int chunk_num, int senderID, int replication_degree){
 
         if(hmap.containsKey(chunk_num)){

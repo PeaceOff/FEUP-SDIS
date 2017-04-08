@@ -32,7 +32,6 @@ public class FileManager {
         if(Files.exists(path)){//Ja existe vamos ler o my_files
             //Se ja existir significa que o server foi abaixo e voltou
             load_information(path);
-            //TODO se tiver algum elemento iniciar o backup
         } else {
             try {//Senao vamos entao criar o directorio
                 Files.createDirectory(path);
@@ -42,7 +41,11 @@ public class FileManager {
         }
     }
 
-    public void add_chunk_rep(String fileID,int chunk_no, int rep){
+    public boolean do_i_store_it(String fileID){
+        return mapper.exists(fileID);
+    }
+
+    public void add_chunk_rep(String fileID,int chunk_no, HashSet<Integer> rep){
 
         my_files.add_chunk_rep(fileID,chunk_no,rep);
 
@@ -52,6 +55,7 @@ public class FileManager {
 
         load_my_files();//Vamos ler os ficheiros que fizemos backup como initiator-peer
         load_in_progress();//Vamos ver se ficamos com algum ficheiro a meio do backup
+        load_deleted_files();//Vamos ler os ficheiros que já foram removidos
         mapper.load_my_data_files(path);//E vamos preencher a informação dos chunks que temos guardados em disco
 
     }
@@ -79,6 +83,14 @@ public class FileManager {
 
     }
 
+    public void save_deleted_files(){
+
+        String path = main_path + File.separator + "deleted";
+
+        Utilities.write_slave(path,my_files.getDeleted_files());
+
+    }
+
     public void save_in_progress(){
 
         String path = main_path + File.separator + "in_progress";
@@ -92,6 +104,32 @@ public class FileManager {
         String path = main_path + File.separator + "my_files";
 
         Utilities.write_slave(path,my_files.getMy_files(),disk_size);
+
+    }
+
+    public void load_deleted_files() {
+
+        String path_to_file = main_path + File.separator + "deleted";
+        Path path = Paths.get(path_to_file);
+
+        if(!Files.exists(path))
+            return;
+
+        try
+        {
+            FileInputStream fis = new FileInputStream(path.toFile());
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            Object ob = ois.readObject();
+
+            my_files.setDeleted_files((ArrayList<DeletedFile>)ob);
+            ois.close();
+            fis.close();
+        }catch(IOException e)
+        {
+            Debug.log("LOAD_DELETED_FILES"," Failed to open deleted file");
+        } catch (ClassNotFoundException e) {
+            Debug.log("LOAD_DELETED_FILES"," Class not found at reading ArrayList");
+        }
 
     }
 
@@ -114,7 +152,7 @@ public class FileManager {
             fis.close();
         }catch(IOException e)
         {
-            Debug.log("LOAD_IN_PROGRESS"," Failed to open my_files file");
+            Debug.log("LOAD_IN_PROGRESS"," Failed to open in_progress file");
         } catch (ClassNotFoundException e) {
             Debug.log("LOAD_IN_PROGRESS"," Class not found at reading ArrayList");
         }
@@ -217,8 +255,6 @@ public class FileManager {
 
     public synchronized byte[] get_file_chunk(String fileID, int chunk_num) {
 
-        //TODO correr ao receber um pedido de GETCHUNK
-
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
 
         Path file = Paths.get(path);
@@ -243,7 +279,6 @@ public class FileManager {
             Debug.log("GET_FILE_CHUNK","Couldn't open/read chunk at " + fileID + ":" + chunk_num);
         }
 
-        //TODO enviar mesagem CHUNK
         return res;
     }
 
@@ -376,4 +411,37 @@ public class FileManager {
         return my_files.get_file_id(file_path);
 
     }
+
+    public synchronized void add_deleted_file_entry(String file_id) {
+
+        HashSet<Integer> hset = my_files.getPeers(file_id);
+        if(hset == null) {
+            Debug.log("ADD_DELETED_FILE_ENTRY","HashSet is Null");
+            return;
+        }
+
+        my_files.add_deleted_file_entry(file_id,hset);
+
+        save_deleted_files();
+
+    }
+
+    public synchronized void remove_deleted_file_entry(String file_id) {
+
+        my_files.remove_deleted_file_entry(file_id);
+
+        save_deleted_files();
+    }
+
+    public synchronized boolean remove_peer(String file_id, int peer) {
+
+        return my_files.remove_peer(file_id,peer);
+    }
+
+    public synchronized DeletedFile get_first_deleted_file(){
+
+        return my_files.get_first_deleted_file();
+    }
+
+
 }

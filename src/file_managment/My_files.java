@@ -4,12 +4,14 @@ import utils.Utilities;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class My_files {
 
     private ArrayList<Metadata> my_files = new ArrayList<Metadata>();
     private ArrayList<FileInProgress> in_progress = new ArrayList<FileInProgress>();
+    private ArrayList<DeletedFile> deleted_files = new ArrayList<DeletedFile>();
 
     public void add_file_in_progress(String name,int c,int repD){
 
@@ -51,7 +53,7 @@ public class My_files {
         this.my_files = my_files;
     }
 
-    public void add_chunk_rep(String fileID,int chunk_no, int rep){
+    public void add_chunk_rep(String fileID,int chunk_no, HashSet<Integer> rep){
 
         for(int i = 0; i < my_files.size(); i++){
             if(my_files.get(i).fileID.equals(fileID))
@@ -129,5 +131,65 @@ public class My_files {
 
     public ArrayList<FileInProgress> getIn_progress() {
         return in_progress;
+    }
+
+    public void add_deleted_file_entry(String file_id, HashSet<Integer> total_peers) {
+
+        for(int i = 0 ; i < deleted_files.size(); i++){
+            if(deleted_files.get(i).getFile_id().equals(file_id)){
+                return;
+            }
+        }
+
+        deleted_files.add(new DeletedFile(file_id,total_peers));
+
+    }
+
+    public void remove_deleted_file_entry(String file_id) {
+
+        for(int i = 0 ; i < deleted_files.size(); i++){
+            if(deleted_files.get(i).getFile_id().equals(file_id)){
+                deleted_files.remove(i);
+                return;
+            }
+        }
+    }
+
+    public HashSet<Integer> getPeers(String file_id) {
+
+        for(int i = 0 ; i < my_files.size(); i++){
+            if(my_files.get(i).fileID.equals(file_id)){
+                return my_files.get(i).get_total_peers();
+            }
+        }
+
+        return null;
+    }
+
+    public boolean remove_peer(String file_id, int peer) {
+
+        for(int i = 0 ; i < deleted_files.size(); i++){
+            if(deleted_files.get(i).getFile_id().equals(file_id)){
+                return deleted_files.get(i).remove_peer(peer);
+            }
+        }
+
+        return true;
+    }
+
+    public ArrayList<DeletedFile> getDeleted_files() {
+        return deleted_files;
+    }
+
+    public void setDeleted_files(ArrayList<DeletedFile> deleted_files) {
+        this.deleted_files = deleted_files;
+    }
+
+    public DeletedFile get_first_deleted_file() {
+
+        if(deleted_files.size() > 0)
+            return deleted_files.get(0);
+
+        return null;
     }
 }

@@ -9,6 +9,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -21,7 +22,7 @@ public class Metadata implements Serializable {
     private long size;
     private int rep_degree;
     public String fileID;
-    public HashMap<Integer,Integer> chunks_n_reps = new HashMap<Integer,Integer>();
+    public HashMap<Integer,HashSet<Integer>> chunks_n_reps = new HashMap<Integer,HashSet<Integer>>();
 
     public Metadata(String file_path, BasicFileAttributes metadata, int rd, long len)  {
 
@@ -33,7 +34,7 @@ public class Metadata implements Serializable {
         this.rep_degree = rd;
     }
 
-    public void append_reps(int chunk_no,int reps){
+    public void append_reps(int chunk_no,HashSet<Integer> reps){
         chunks_n_reps.put(chunk_no,reps);
     }
 
@@ -93,12 +94,22 @@ public class Metadata implements Serializable {
         res += "File Path : " + file_path + '\n';
         res += "Backup Service id : " + fileID + '\n' + "Desired Rep Degree : " + rep_degree + '\n';
 
-        Iterator<Entry<Integer, Integer>> it = chunks_n_reps.entrySet().iterator();
+        Iterator<Entry<Integer, HashSet<Integer>>> it = chunks_n_reps.entrySet().iterator();
         while (it.hasNext()) {
-            HashMap.Entry<Integer,Integer> pair = (HashMap.Entry<Integer,Integer>)it.next();
-            res += "\tChunk Number : " + pair.getKey() + " | Perceived Rep Degree : " + pair.getValue() + '\n';
+            HashMap.Entry<Integer,HashSet<Integer>> pair = (HashMap.Entry<Integer,HashSet<Integer>>)it.next();
+            res += "\tChunk Number : " + pair.getKey() + " | Perceived Rep Degree : " + pair.getValue().size() + '\n';
             it.remove();
         }
+        return res;
+    }
+
+    public HashSet<Integer> get_total_peers() {
+
+        HashSet<Integer> res = new HashSet<Integer>();
+
+        for ( HashMap.Entry<Integer,HashSet<Integer>> entry : chunks_n_reps.entrySet())
+            res.addAll(entry.getValue());
+
         return res;
     }
 }

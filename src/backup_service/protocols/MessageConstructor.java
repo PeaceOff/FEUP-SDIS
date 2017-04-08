@@ -22,6 +22,7 @@ public class MessageConstructor {
 		commandArgs.put("CHUNK", 4);
 		commandArgs.put("DELETE", 3);
 		commandArgs.put("REMOVED", 4);
+		commandArgs.put("CONFDEL",3);
 	}
 	
 	public static int getArgumentNumber(String name){
@@ -122,6 +123,19 @@ public class MessageConstructor {
 		bos.write(Utilities.CRLF);
 		bos.write(Utilities.CRLF);
 		
+		return Arrays.copyOf(bos.toByteArray(), bos.size());
+	}
+
+	public static byte[] getCONFDEL(String fileID) throws IOException{
+		bos.reset();
+
+		bos.write(ASCII("CONFDEL"));
+		bos.write(ASCII(" " + ChannelManager.getVersion()));
+		bos.write(ASCII(" " + ChannelManager.getServerID()));
+		bos.write(ASCII(" " + fileID));
+		bos.write(Utilities.CRLF);
+		bos.write(Utilities.CRLF);
+
 		return Arrays.copyOf(bos.toByteArray(), bos.size());
 	}
 	

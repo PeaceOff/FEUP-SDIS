@@ -1,6 +1,7 @@
 package backup_service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashSet;
 
 import backup_service.distributor.IMessageListener;
@@ -78,7 +79,7 @@ public class Services implements IMessageListener {
 			
 			if(getReceptions() + i >= degree){
 				Debug.log("SERVICES_SENDPUTCHUNK[ " + chunkNo + " ]","Finished BACKUP! Receptions:" +getReceptions());
-				fileManager.add_chunk_rep(fileID,chunkNo,getReceptions());
+				fileManager.add_chunk_rep(fileID,chunkNo,getConfirmations());
 				record = false;
 				return;
 			}
@@ -93,6 +94,10 @@ public class Services implements IMessageListener {
 	
 	private int getReceptions(){
 		return confirmations.size();
+	}
+
+	private HashSet<Integer> getConfirmations(){
+		return confirmations;
 	}
 
 	@Override
