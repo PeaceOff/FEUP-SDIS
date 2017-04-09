@@ -9,6 +9,7 @@ import file_managment.FileManager;
 import utils.Debug;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 
 public class DeleteFile2 extends BaseService implements IDistribute {
 
@@ -55,8 +56,11 @@ public class DeleteFile2 extends BaseService implements IDistribute {
 
 			new TCPSender(channelManager.getMC().getLastAddress(),channelManager.getMC().getPort()+header.senderID, MessageConstructor.getCONFDEL(header.fileID));
 
-		} catch (Exception e) {
-			Debug.log("DELETEFILE2","Error sending message to TCP");
+		} catch (SocketTimeoutException e) {
+			Debug.log("DELETEFILE2","Socket timed out in TCP SENDER");
+			return;
+		} catch (IOException e){
+			Debug.log("DELETEFILE2", "Error in tcp sender");
 			return;
 		}
 

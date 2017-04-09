@@ -22,7 +22,7 @@ public class Metadata implements Serializable {
     private long size;
     private int rep_degree;
     public String fileID;
-    public HashMap<Integer,HashSet<Integer>> chunks_n_reps = new HashMap<Integer,HashSet<Integer>>();
+    public HashMap<Integer,HashSet<Integer>> chunks_n_reps;
 
     public Metadata(String file_path, BasicFileAttributes metadata, int rd, long len)  {
 
@@ -32,10 +32,20 @@ public class Metadata implements Serializable {
         this.size = len;
         this.fileID = this.get_file_id();
         this.rep_degree = rd;
+        this.chunks_n_reps = new HashMap<Integer,HashSet<Integer>>();
     }
 
     public void append_reps(int chunk_no,HashSet<Integer> reps){
-        chunks_n_reps.put(chunk_no,reps);
+
+        if(chunks_n_reps.containsKey(chunk_no)) {
+            chunks_n_reps.get(chunk_no).addAll(reps);
+            return;
+        }
+
+        HashSet<Integer> res = new HashSet<Integer>();
+        res.addAll(reps);
+
+        chunks_n_reps.put(chunk_no,res);
     }
 
     private String get_file_id() {

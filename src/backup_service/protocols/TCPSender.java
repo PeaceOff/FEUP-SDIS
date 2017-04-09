@@ -12,7 +12,7 @@ import utils.Debug;
 
 public class TCPSender {
 	
-	public TCPSender(InetAddress inet, int port , byte[] data ) throws IOException,SocketTimeoutException{
+	public TCPSender(InetAddress inet, int port , byte[] data ) throws IOException{
 		Debug.log(0,"TCPSENDER","Message Size:" + data.length);
 		Socket cli = new Socket();
 		Debug.log("TCPSENDER","HERE1");

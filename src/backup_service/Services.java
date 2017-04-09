@@ -20,7 +20,7 @@ public class Services implements IMessageListener {
 	private int id = 0;
 	private boolean record = false;
 	private String fileID;
-	private HashSet<Integer> confirmations = new HashSet<>();
+	private HashSet<Integer> confirmations;
 	private FileManager fileManager;
 	
 	public Services (ChannelManager chnl, FileManager fM){
@@ -28,6 +28,7 @@ public class Services implements IMessageListener {
 		channelManager.getMC().getDistributor().addListener("STORED", this);
 		id = counter++;
 		fileManager = fM;
+		confirmations = new HashSet<>();
 	}
 	
 	public int getId() {

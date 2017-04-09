@@ -121,7 +121,7 @@ public class RemoveChunk extends BaseService implements IMessageListener {
 		int replication_degree = fileManager.getMapper().get_rep_degree(header.fileID, header.chunkNo);
 
 		fileManager.add_file_in_progress(header.fileID,header.chunkNo,replication_degree);
-		
+
 		try {
 			channelManager.getMC().sendMessage(MessageConstructor.getSTORED(header.fileID, header.chunkNo));
 			services.sendPutChunk(header.fileID, header.chunkNo, replication_degree, fileData,true);
