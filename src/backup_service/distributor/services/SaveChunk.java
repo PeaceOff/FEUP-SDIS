@@ -43,6 +43,10 @@ public class SaveChunk extends BaseService implements IMessageListener {
 	public boolean distribute(String line) {
 		
 		header = new HeaderInfo(line);
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		

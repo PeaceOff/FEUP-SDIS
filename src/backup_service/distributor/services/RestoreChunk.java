@@ -22,6 +22,11 @@ public class RestoreChunk implements IDistribute {
 	public boolean distribute(String line) {//CHUNK
 		
 		header = new HeaderInfo(line);
+
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		

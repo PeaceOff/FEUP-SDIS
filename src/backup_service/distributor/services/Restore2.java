@@ -27,6 +27,11 @@ public class Restore2 extends BaseService{
 	@Override
 	public boolean distribute(String line) {//GETCHUNK 
 		header = new HeaderInfo(line);
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 

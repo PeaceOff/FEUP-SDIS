@@ -52,6 +52,12 @@ public class Restore extends BaseService implements IMessageListener{
 	@Override
 	public boolean distribute(String line) {//GETCHUNK 
 		header = new HeaderInfo(line);
+
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 

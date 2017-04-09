@@ -55,6 +55,12 @@ public class RemoveChunk extends BaseService implements IMessageListener {
 	@Override
 	public boolean distribute(String line) {//REMOVED
 		header = new HeaderInfo(line);
+
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 		

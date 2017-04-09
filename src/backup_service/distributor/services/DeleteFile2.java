@@ -31,6 +31,10 @@ public class DeleteFile2 extends BaseService implements IDistribute {
 	@Override
 	public boolean distribute(String line) {
 		header = new HeaderInfo(line);
+
+		if(!header.version.equals(ChannelManager.getVersion()))
+			return false;
+
 		if(header.senderID == ChannelManager.getServerID())
 			return false;
 

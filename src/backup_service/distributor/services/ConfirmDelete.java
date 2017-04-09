@@ -17,6 +17,12 @@ public class ConfirmDelete implements IDistribute{
     @Override
     public boolean distribute(String line) {
         HeaderInfo header = new HeaderInfo(line);
+
+
+        if(!header.version.equals(ChannelManager.getVersion()))
+            return false;
+
+
         if(header.senderID == ChannelManager.getServerID())
             return false;
 
