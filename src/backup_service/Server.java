@@ -255,7 +255,7 @@ public class Server implements IBackup {
     	while(FileManager.getFolderSize(directory) > fileManager.getDisk_size() * 1000){
              FileChunk delete = fileManager.getMapper().get_chunk_to_delete();
 
-             if(!fileManager.delete_file_chunk(delete.getFile_id(),delete.getN_chunk()))
+             if(!fileManager.delete_file_chunk(delete.getFile_id(),delete.getN_chunk(),true))
                  Debug.log("ERROR", "Could not delete file! " + delete.toString());
              
              try {

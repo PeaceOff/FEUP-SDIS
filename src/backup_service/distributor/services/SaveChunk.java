@@ -19,16 +19,18 @@ public class SaveChunk extends BaseService implements IMessageListener {
 	
 	private boolean record = false;
 	private HashSet<Integer> found = new HashSet<Integer>();
+	private boolean exists = false;
 	
 	public SaveChunk(ChannelManager chnMngr, FileManager fileManager) {
 		super(chnMngr, fileManager);
 		//chnMngr.getMC().getDistributor().addListener("STORED", this);
 	}
 	
-	public SaveChunk(ChannelManager chnMngr, FileManager fileManager, HeaderInfo header) {
+	public SaveChunk(ChannelManager chnMngr, FileManager fileManager, HeaderInfo header,boolean exists) {
 		super(chnMngr, fileManager);
 		this.header = header;
 		record = false;
+		this.exists = exists;
 	}
 	
 	@Override
@@ -56,7 +58,9 @@ public class SaveChunk extends BaseService implements IMessageListener {
 		Debug.log(2,"PUTCHUNK-DATA","DataSize: " + data.length);
 		
 		try {
-			
+
+			exists = fileManager.exists_chunk(header.fileID,header.chunkNo);
+
 			if(fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg)){
 				this.clone().start();
 			}
@@ -101,17 +105,17 @@ public class SaveChunk extends BaseService implements IMessageListener {
 	@Override
 	public BaseService clone() {
 		
-		return new SaveChunk(channelManager, fileManager, header.clone());
+		return new SaveChunk(channelManager, fileManager, header.clone(),this.exists);
 	}
 	
 	@Override
 	public void run() {
 		channelManager.getMC().getDistributor().addListener("STORED", this);
 		try {
-			if(waitForOtherConfirmations() < header.replicationDeg)
+			if(exists || waitForOtherConfirmations() < header.replicationDeg)
 				channelManager.getMC().sendMessage(MessageConstructor.getSTORED(header.fileID, header.chunkNo));
 			else
-				fileManager.delete_file_chunk(header.fileID, header.chunkNo);
+				fileManager.delete_file_chunk(header.fileID, header.chunkNo,false);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

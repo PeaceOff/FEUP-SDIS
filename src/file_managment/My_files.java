@@ -109,6 +109,8 @@ public class My_files {
 
     public String get_file_id(String file_path) {
 
+        Debug.log("!!!!!EASTER!!!!!EGG!!!!!","getting peer file_id");
+
         for(int i = 0 ; i < my_files.size(); i++){
             if(my_files.get(i).getFile_path().equals(file_path)){
                 return my_files.get(i).fileID;
@@ -158,6 +160,8 @@ public class My_files {
 
     public HashSet<Integer> getPeers(String file_id) {
 
+        Debug.log("!!!!!EASTER!!!!!EGG!!!!!","getting peers");
+
         for(int i = 0 ; i < my_files.size(); i++){
             if(my_files.get(i).fileID.equals(file_id)){
                 return my_files.get(i).get_total_peers();
@@ -195,6 +199,9 @@ public class My_files {
     }
 
     public boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID) {
+
+        Debug.log("!!!!!EASTER!!!!!EGG!!!!!","peer deleted chunk");
+
 
         for(int i = 0 ; i < my_files.size(); i++){
             if(my_files.get(i).fileID.equals(fileID)){

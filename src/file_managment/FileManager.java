@@ -226,7 +226,7 @@ public class FileManager {
         if(is_my_file(fileID))
             return false;
 
-        String directory = this.main_path + File.separator + fileID.toString();
+        String directory = this.main_path + File.separator + fileID;
         Path folder_path = Paths.get(directory);
         if(!Files.exists(folder_path))//Ainda nao existe a pasta
             Files.createDirectory(Paths.get(directory));
@@ -310,7 +310,7 @@ public class FileManager {
 		mapper.file_removed(fileID);
     }
 
-    public synchronized boolean delete_file_chunk(String fileID, int chunk_num){
+    public synchronized boolean delete_file_chunk(String fileID, int chunk_num,boolean remover){
 
         //TODO correr ao receber um pedido de DELETE (este é o pedido quando o ficheiro é apagado na origem mas é a mesma funcao para apagar uma chunk por forma a libertar espaço)
         String path = this.main_path + File.separator + fileID + File.separator + chunk_num;
@@ -319,7 +319,8 @@ public class FileManager {
         Path file = Paths.get(path);
         try {
             Files.deleteIfExists(file);
-            mapper.chunk_removed(fileID,chunk_num);
+            if(remover)
+                mapper.chunk_removed(fileID,chunk_num);
 
             if(Paths.get(file_path).toFile().listFiles().length <= 1){
                 recursiveDelete(Paths.get(file_path).toFile());
@@ -426,7 +427,7 @@ public class FileManager {
             return;
         }
 
-        my_files.add_deleted_file_entry(file_id,hset);
+        my_files.add_deleted_file_entry(file_id,(HashSet<Integer>)hset.clone());
 
         save_deleted_files();
 
@@ -449,5 +450,11 @@ public class FileManager {
         return my_files.get_first_deleted_file();
     }
 
+    public boolean exists_chunk(String fileID, int chunk_no){
+
+        String path = this.main_path + File.separator + fileID + File.separator + chunk_no;
+
+        return Files.exists(Paths.get(path));
+    }
 
 }

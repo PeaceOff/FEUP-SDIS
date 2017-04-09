@@ -23,6 +23,7 @@ public class Mapper {
 
     public void add_entry(String path_to_data, String fileID, int chunk_num, int senderID, int replication_degree) {//Adicionar uma entrada ao hashmap
 
+        Debug.log("\n\nADD ENTRY:\n\t",fileID + " | " + chunk_num + " | " + senderID + " | " + replication_degree);
         if(mapper.containsKey(fileID)){//Ja existe um mapeamento
             HashMap<Integer, ChunkInfo> temp = mapper.get(fileID.toString());
             mapper.put(fileID,helper_func(temp,chunk_num,senderID,replication_degree));
@@ -251,13 +252,22 @@ public class Mapper {
         for (HashMap.Entry<String,HashMap<Integer, ChunkInfo>> entry : mapper.entrySet()) {
 
             String file_id = entry.getKey();
-            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
 
+            String caminho = this.main_path + File.separator + file_id;
+            if(!Files.exists(Paths.get(caminho)))
+                continue;
+
+            HashMap<Integer, ChunkInfo> hmap = entry.getValue();
             res += "File ID : " + file_id + '\n';
 
             for(Map.Entry<Integer, ChunkInfo> entry1 : hmap.entrySet()) {
 
                 int chunk_n = entry1.getKey();
+                String path = this.main_path + File.separator + file_id + File.separator + chunk_n;
+
+                if(!Files.exists(Paths.get(path)))
+                    continue;
+
                 ChunkInfo peers = entry1.getValue();
                 String tmp = this.main_path + File.separator + file_id + File.separator + chunk_n;
                 int size = (int)(Paths.get(tmp).toFile().length()/1000);

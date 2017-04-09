@@ -98,7 +98,6 @@ public class Metadata implements Serializable {
         while (it.hasNext()) {
             HashMap.Entry<Integer,HashSet<Integer>> pair = (HashMap.Entry<Integer,HashSet<Integer>>)it.next();
             res += "\tChunk Number : " + pair.getKey() + " | Perceived Rep Degree : " + pair.getValue().size() + '\n';
-            it.remove();
         }
         return res;
     }
@@ -116,6 +115,7 @@ public class Metadata implements Serializable {
     public boolean peer_deleted_chunk(int chunk_no,int peer){
 
         HashSet<Integer> peers = chunks_n_reps.get(chunk_no);
+
         if(peers == null)
             return false;
 
