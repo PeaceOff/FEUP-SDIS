@@ -7,6 +7,7 @@ import backup_service.Services;
 import backup_service.distributor.IMessageListener;
 import backup_service.protocols.ChannelManager;
 import backup_service.protocols.HeaderInfo;
+import backup_service.protocols.MessageConstructor;
 import file_managment.FileManager;
 import utils.Debug;
 
@@ -120,8 +121,9 @@ public class RemoveChunk extends BaseService implements IMessageListener {
 		int replication_degree = fileManager.getMapper().get_rep_degree(header.fileID, header.chunkNo);
 
 		fileManager.add_file_in_progress(header.fileID,header.chunkNo,replication_degree);
-
+		
 		try {
+			channelManager.getMC().sendMessage(MessageConstructor.getSTORED(header.fileID, header.chunkNo));
 			services.sendPutChunk(header.fileID, header.chunkNo, replication_degree, fileData,true);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

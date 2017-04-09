@@ -104,21 +104,21 @@ public class Utilities {
 			return false;
 		}
 
-		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[3])){
+		if(!Pattern.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}",args[3])){
 			System.out.println("MC ip address is not correct! Format <IP>:<PORT>");
 			return false;
 		}
 
-		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[4])){
+		if(!Pattern.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}",args[4])){
 			System.out.println("MDB ip address is not correct! Format <IP>:<PORT>");
 			return false;
 		}
 
-		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[5])){
+		if(!Pattern.matches("\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}:\\d{1,5}",args[5])){
 			System.out.println("MDR ip address is not correct! Format <IP>:<PORT>");
 			return false;
 		}
-		
+
 		return true;
     }
 }

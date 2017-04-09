@@ -47,19 +47,19 @@ public class HeaderInfo {
 		sb.append("V:");
 		sb.append(version);
 		sb.append("#");
-		
+
+		sb.append("[ ");
+		sb.append(chunkNo);
+		sb.append(" ]");
+
 		sb.append("S_ID:");
 		sb.append(senderID);
-		sb.append("#");
+		sb.append(" | ");
 		
 		sb.append("F_ID:");
 		sb.append(fileID);
-		sb.append("#");
-		
-		sb.append("C_No:");
-		sb.append(chunkNo);
-		sb.append("#");
-		
+		sb.append(" | ");
+
 		sb.append("RepDeg:");
 		sb.append(replicationDeg);
 		sb.append(";");

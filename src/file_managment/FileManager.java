@@ -1,5 +1,6 @@
 package file_managment;
 
+import backup_service.protocols.ChannelManager;
 import utils.Debug;
 import utils.Utilities;
 
@@ -317,6 +318,8 @@ public class FileManager {
         String file_path = this.main_path + File.separator + fileID;
 
         Path file = Paths.get(path);
+
+        mapper.remove_self(fileID,chunk_num,ChannelManager.getServerID());
         try {
             Files.deleteIfExists(file);
             if(remover)

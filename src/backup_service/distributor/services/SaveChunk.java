@@ -65,7 +65,7 @@ public class SaveChunk extends BaseService implements IMessageListener {
 
 			exists = fileManager.exists_chunk(header.fileID,header.chunkNo);
 
-			if(fileManager.save_chunk(data, header.fileID, header.chunkNo, header.senderID, header.replicationDeg)){
+			if(fileManager.save_chunk(data, header.fileID, header.chunkNo, ChannelManager.getServerID(), header.replicationDeg)){
 				this.clone().start();
 			}
 			

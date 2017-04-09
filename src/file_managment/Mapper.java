@@ -278,4 +278,11 @@ public class Mapper {
 
         return res;
     }
+
+    public void remove_self(String fileID, int chunk_num, int serverID) {
+
+        if(mapper.containsKey(fileID))
+            if(mapper.get(fileID).containsKey(chunk_num))
+                mapper.get(fileID).get(chunk_num).getPeers().remove(serverID);
+    }
 }
