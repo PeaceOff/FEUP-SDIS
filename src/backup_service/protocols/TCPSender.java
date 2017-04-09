@@ -16,7 +16,8 @@ public class TCPSender {
 		Debug.log(0,"TCPSENDER","Message Size:" + data.length);
 		Socket cli = new Socket();
 		Debug.log("TCPSENDER","HERE1");
-		cli.connect(new InetSocketAddress(inet,port),100);
+		cli.connect(new InetSocketAddress(inet,port),50);
+		cli.setSoTimeout(50);
 		Debug.log("TCPSENDER","HERE2");
 		DataOutputStream dout = new DataOutputStream(cli.getOutputStream());
 		Debug.log("TCPSENDER","HERE3");
