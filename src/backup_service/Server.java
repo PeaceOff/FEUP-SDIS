@@ -13,6 +13,7 @@ import backup_service.distributor.services.*;
 import backup_service.protocols.*;
 import file_managment.*;
 import utils.Debug;
+import utils.Utilities;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -298,7 +299,12 @@ public class Server implements IBackup {
 
 		String remote_object_name = args[2];
         Server sv;
-        try {
+
+        if(!Utilities.check_commands(args)){
+        	return;
+		}
+
+		try {
         	sv = new Server(args);
 			IBackup peer = (IBackup) UnicastRemoteObject.exportObject(sv,0);
 			Registry registry = LocateRegistry.getRegistry();
