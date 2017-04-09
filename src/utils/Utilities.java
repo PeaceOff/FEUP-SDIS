@@ -4,6 +4,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 public class Utilities {
 	
@@ -90,5 +91,34 @@ public class Utilities {
 		}
 
 	}
-	
+
+    public static boolean check_commands(String[] args) {
+
+		if(!Pattern.matches("\\d\\.\\d",args[0])) {
+			System.out.println("Version must be of type <n>.<m> where <n> and <m> are the ASCII codes of digits");
+			return false;
+		}
+
+		if(!Pattern.matches("[0-9]{1,3}",args[1])){
+			System.out.println("Server ID must be 1 to 3 digits");
+			return false;
+		}
+
+		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[3])){
+			System.out.println("MC ip address is not correct! Format <IP>:<PORT>");
+			return false;
+		}
+
+		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[4])){
+			System.out.println("MDB ip address is not correct! Format <IP>:<PORT>");
+			return false;
+		}
+
+		if(!Pattern.matches("\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}\\\\.\\\\d{1,3}:\\\\d{1,5}",args[5])){
+			System.out.println("MDR ip address is not correct! Format <IP>:<PORT>");
+			return false;
+		}
+		
+		return true;
+    }
 }
