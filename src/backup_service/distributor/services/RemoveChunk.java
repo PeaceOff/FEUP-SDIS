@@ -109,7 +109,7 @@ public class RemoveChunk extends BaseService implements IMessageListener {
 			Debug.log(1,"REMOVECHUNK","COULD NOT SEND!");
 			return;
 		}
-		Debug.log(1,"REMOVECHUNK","SENDING!");
+		Debug.log(1,"REMOVECHUNK","RECEIVING!");
 		
 		int replication_degree = fileManager.getMapper().get_rep_degree(header.fileID, header.chunkNo);
 

@@ -1,5 +1,6 @@
 package file_managment;
 
+import utils.Debug;
 import utils.Utilities;
 
 import java.io.File;
@@ -191,5 +192,27 @@ public class My_files {
             return deleted_files.get(0);
 
         return null;
+    }
+
+    public boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID) {
+
+        for(int i = 0 ; i < my_files.size(); i++){
+            if(my_files.get(i).fileID.equals(fileID)){
+                return my_files.get(i).peer_deleted_chunk(chunk_no,senderID);
+            }
+        }
+
+        return false;
+    }
+
+    public void peer_stored_chunk(String fileID, int chunk_num, int senderID) {
+
+        for(int i = 0 ; i < my_files.size(); i++){
+            if(my_files.get(i).fileID.equals(fileID)){
+                my_files.get(i).peer_stored_chunk(chunk_num,senderID);
+                return;
+            }
+        }
+
     }
 }

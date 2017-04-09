@@ -112,4 +112,29 @@ public class Metadata implements Serializable {
 
         return res;
     }
+
+    public boolean peer_deleted_chunk(int chunk_no,int peer){
+
+        HashSet<Integer> peers = chunks_n_reps.get(chunk_no);
+        if(peers == null)
+            return false;
+
+        if(peers.contains(peer)){
+            peers.remove(peer);
+            Debug.log("REPDEG",rep_degree + "-" + peers.size());
+            return rep_degree > peers.size();
+        }
+        Debug.log("NO PEER D:");
+        return false;
+
+    }
+
+    public void peer_stored_chunk(int chunk_num, int senderID) {
+
+        HashSet<Integer> peers = chunks_n_reps.get(chunk_num);
+        if(peers == null)
+            return;
+
+        peers.add(senderID);
+    }
 }

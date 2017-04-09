@@ -245,12 +245,16 @@ public class FileManager {
 
     public void save_file_chunk_data(String fileID, int chunk_num, int senderID,int replication_degree){
 
-    	if(is_my_file(fileID))
-    		return;
+    	if(is_my_file(fileID)){
 
-        String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
+    	    my_files.peer_stored_chunk(fileID,chunk_num,senderID);
 
-        mapper.add_entry(path_to_data,fileID,chunk_num,senderID,replication_degree);
+        } else {
+
+            String path_to_data = this.main_path + File.separator + fileID.toString() + File.separator + "data";
+
+            mapper.add_entry(path_to_data, fileID, chunk_num, senderID, replication_degree);
+        }
     }
 
     public synchronized byte[] get_file_chunk(String fileID, int chunk_num) {
@@ -331,11 +335,13 @@ public class FileManager {
 
     public synchronized boolean peer_deleted_chunk(String fileID, int chunk_no, int senderID){
 
-        if(is_my_file(fileID))
-            return true;
-
-        return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
-
+        if(is_my_file(fileID)) {
+            Debug.log("Is my file!");
+            return my_files.peer_deleted_chunk(fileID,chunk_no,senderID);
+        } else {
+            Debug.log("NOT my file!");
+            return mapper.peer_removed_chunk(fileID,chunk_no,senderID);
+        }
     }
 
     public static long getFolderSize(File folder) {
