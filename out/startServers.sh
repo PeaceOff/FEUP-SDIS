@@ -1,9 +1,14 @@
 #!/bin/bash
 gnome-terminal -x bash -c "rmiregistry"
-set total=$(($1+$2-1))
-echo $total
-for (( i=$sS; i<=$total; i++ ))
+echo -n "Number of Servers\n> "
+read peer_number
+echo -n "Starting at\n> "
+read start
+echo -n "Server Version\n> "
+read version
+
+while [ "$start" -lt "$peer_number" ]
 do
-	echo $i 
-   gnome-terminal -x bash -c "java backup_service/Server 1.0 $i $i 224.1.1.1:1111 224.2.2.2:2222 224.3.3.3:3333"
+	gnome-terminal -x bash -c "java out/backup_service/Server $version $i $i 224.1.1.1:1111 224.2.2.2:2222 224.3.3.3:3333"
+	start=`expr $start + 1`
 done
